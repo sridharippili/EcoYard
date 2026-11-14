@@ -181,6 +181,26 @@ ValidationReport validateContent(ContentFiles files, {bool strict = false}) {
         error('actions.json', '${a.id}: unknown related plant "$id"');
       }
     }
+    if (a.priority < 1 || a.priority > 3) {
+      error('actions.json', '${a.id}: priority must be 1-3');
+    }
+    for (final id in a.forBirdIds) {
+      if (repo.birdById(id) == null) {
+        error('actions.json', '${a.id}: forBirdIds has unknown bird "$id"');
+      }
+    }
+    if (a.forBirdIds.toSet().length != a.forBirdIds.length) {
+      error('actions.json', '${a.id}: forBirdIds lists a bird twice');
+    }
+    for (final id in a.featuredForBirdIds) {
+      if (repo.birdById(id) == null) {
+        error('actions.json',
+            '${a.id}: featuredForBirdIds has unknown bird "$id"');
+      } else if (a.forBirdIds.isNotEmpty && !a.forBirdIds.contains(id)) {
+        error('actions.json',
+            '${a.id}: featured for "$id" but the action is not for that bird (forBirdIds)');
+      }
+    }
   }
   final tipMonths = <int>{};
   for (final t in repo.tips) {

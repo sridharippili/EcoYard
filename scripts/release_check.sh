@@ -5,6 +5,13 @@
 set -e
 cd "$(git rev-parse --show-toplevel)"
 
+echo "== engine fixtures must be promoted and locked"
+if [ ! -f fixtures/engine_cases.json ]; then
+  echo "fixtures/engine_cases.json is missing. The engine is only pinned by the draft in" >&2
+  echo "packages/ecoyard_core/test/engine_cases.draft.json. Review it and promote it (docs/ENGINE_SPEC.md)." >&2
+  exit 1
+fi
+
 echo "== content, strict (review status + photos)"
 dart run scripts/validate_content.dart --strict
 

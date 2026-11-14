@@ -211,12 +211,26 @@ class HabitatAction {
     required this.spaces,
     required this.needs,
     required this.relatedPlantIds,
+    required this.priority,
+    this.forBirdIds = const [],
+    this.featuredForBirdIds = const [],
   });
 
   final String id;
   final String title;
   final String body;
   final CostTier costTier;
+
+  /// 1-3. Breaks ties when the engine chooses between equally useful actions.
+  final int priority;
+
+  /// When not empty, the action applies only to these birds (a nest box is
+  /// for cavity nesters). Empty means it applies to every bird.
+  final List<String> forBirdIds;
+
+  /// Birds for which this is a signature action (seed heads for goldfinches,
+  /// a nest box for chickadees). The engine prefers it for them.
+  final List<String> featuredForBirdIds;
 
   /// Months (1-12) in which the action makes sense.
   final List<int> months;

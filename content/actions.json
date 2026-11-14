@@ -6,66 +6,71 @@
     "Cornell Lab of Ornithology and American Bird Conservancy guidance on backyard habitat (water, cover, windows)",
     "Xerces Society guidance on leaving leaf litter and stems"
   ],
-  "note": "Free actions first. months lists the months the action makes sense (1 = January).",
+  "note": "months lists the months the action makes sense (1 = January). priority 1-3 breaks ties when the engine picks between equally useful actions (3 = most important). forBirdIds, when present, limits the action to those birds; without it the action applies to every bird. featuredForBirdIds marks the action as a signature action for those birds, so the engine prefers it for them (it must be a subset of forBirdIds when that is present).",
   "actions": [
     {
-      "id": "add-water-source", "title": "Add a water source",
+      "id": "add-water-source", "priority": 3, "title": "Add a water source",
       "body": "A shallow dish works. Refill it every few days.",
       "costTier": "free", "months": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
       "spaces": ["yard", "balcony", "containers"], "needs": ["water"], "relatedPlantIds": []
     },
     {
-      "id": "keep-leaf-cover", "title": "Keep some leaf cover",
+      "id": "keep-leaf-cover", "priority": 3, "title": "Keep some leaf cover",
       "body": "Leave fallen leaves under your shrubs through winter. Insects shelter there, and birds feed on them in spring.",
       "costTier": "free", "months": [9, 10, 11, 12, 1, 2, 3, 4],
       "spaces": ["yard"], "needs": ["food", "shelter"], "relatedPlantIds": []
     },
     {
-      "id": "plant-native-shrub", "title": "Plant a native shrub",
+      "id": "plant-native-shrub", "priority": 3, "title": "Plant a native shrub",
       "body": "A native shrub, like American holly, gives birds food and cover for years.",
       "costTier": "low", "months": [3, 4, 5, 9, 10, 11],
-      "spaces": ["yard"], "needs": ["food", "shelter"],
+      "spaces": ["yard"], "needs": ["food", "shelter", "nesting"],
       "relatedPlantIds": ["american-holly", "arrowwood-viburnum", "northern-spicebush", "common-winterberry"]
     },
     {
-      "id": "leave-seed-heads", "title": "Leave the seed heads standing",
+      "id": "leave-seed-heads", "priority": 2, "title": "Leave the seed heads standing",
       "body": "Skip the fall cutback. Coneflower and black-eyed Susan seeds feed finches through winter.",
       "costTier": "free", "months": [9, 10, 11, 12, 1, 2, 3],
       "spaces": ["yard", "balcony", "containers"], "needs": ["food"],
-      "relatedPlantIds": ["black-eyed-susan", "purple-coneflower", "new-england-aster"]
+      "relatedPlantIds": ["black-eyed-susan", "purple-coneflower", "new-england-aster"],
+      "featuredForBirdIds": ["amegfi"]
     },
     {
-      "id": "clean-birdbath", "title": "Scrub the birdbath weekly",
+      "id": "clean-birdbath", "priority": 1, "title": "Scrub the birdbath weekly",
       "body": "Rinse and refill it at least once a week, and daily in hot weather, so the water stays clean.",
       "costTier": "free", "months": [4, 5, 6, 7, 8, 9, 10],
       "spaces": ["yard", "balcony", "containers"], "needs": ["water"], "relatedPlantIds": []
     },
     {
-      "id": "build-brush-pile", "title": "Make a brush pile",
+      "id": "build-brush-pile", "priority": 2, "title": "Make a brush pile",
       "body": "Stack fallen branches in a quiet corner. Small birds use it for cover.",
       "costTier": "free", "months": [9, 10, 11, 12, 1, 2, 3],
       "spaces": ["yard"], "needs": ["shelter"], "relatedPlantIds": []
     },
     {
-      "id": "skip-pesticides", "title": "Skip the insect spray",
+      "id": "skip-pesticides", "priority": 2, "title": "Skip the insect spray",
       "body": "Birds feed insects to their chicks. Avoid spraying where birds nest and feed.",
       "costTier": "free", "months": [3, 4, 5, 6, 7, 8, 9],
       "spaces": ["yard", "balcony", "containers"], "needs": ["food"], "relatedPlantIds": []
     },
     {
-      "id": "add-nest-box", "title": "Put up a nest box",
+      "id": "add-nest-box", "priority": 2, "title": "Put up a nest box",
       "body": "Chickadees, titmice and wrens nest in boxes. Pick a box made for the bird you want, mount it on a pole with a predator guard, and clean it out after the season.",
       "costTier": "low", "months": [1, 2, 3, 9, 10],
-      "spaces": ["yard"], "needs": ["nesting"], "relatedPlantIds": []
+      "spaces": ["yard"], "needs": ["nesting"], "relatedPlantIds": [],
+      "forBirdIds": ["bkcchi", "tuftit", "carwre"],
+      "featuredForBirdIds": ["bkcchi", "tuftit", "carwre"]
     },
     {
-      "id": "leave-dead-wood", "title": "Leave a dead tree or branch standing",
+      "id": "leave-dead-wood", "priority": 2, "title": "Leave a dead tree or branch standing",
       "body": "If a dead tree or big limb is not a danger to people or buildings, leave it. Woodpeckers and nuthatches feed and nest in dead wood.",
       "costTier": "free", "months": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-      "spaces": ["yard"], "needs": ["food", "shelter", "nesting"], "relatedPlantIds": []
+      "spaces": ["yard"], "needs": ["food", "shelter", "nesting"], "relatedPlantIds": [],
+      "forBirdIds": ["dowwoo", "whbnut"],
+      "featuredForBirdIds": ["dowwoo", "whbnut"]
     },
     {
-      "id": "mark-windows", "title": "Make windows visible",
+      "id": "mark-windows", "priority": 2, "title": "Make windows visible",
       "body": "Birds crash into reflections. Window decals or tape in a close grid help them see the glass.",
       "costTier": "low", "months": [3, 4, 5, 9, 10, 11],
       "spaces": ["yard", "balcony", "containers"], "needs": ["safety"], "relatedPlantIds": []

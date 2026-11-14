@@ -103,6 +103,9 @@ class ReferenceRepository {
   final Map<String, Plant> _plantsById;
   final Map<String, HabitatAction> _actionsById;
 
+  /// The region every file covers (the validator checks they agree).
+  String get region => meta['birds.json']!.region;
+
   Bird? birdById(String id) => _birdsById[id];
   Plant? plantById(String id) => _plantsById[id];
   HabitatAction? actionById(String id) => _actionsById[id];
@@ -345,6 +348,13 @@ HabitatAction _action(String file, Map<String, dynamic> m) {
     spaces: _enumList(SpaceType.values, (e) => e.json, m, 'spaces', file, id),
     needs: _enumList(Need.values, (e) => e.json, m, 'needs', file, id),
     relatedPlantIds: _strings(m, 'relatedPlantIds', file, id),
+    priority: _int(m, 'priority', file, id),
+    forBirdIds: m.containsKey('forBirdIds')
+        ? _strings(m, 'forBirdIds', file, id)
+        : const [],
+    featuredForBirdIds: m.containsKey('featuredForBirdIds')
+        ? _strings(m, 'featuredForBirdIds', file, id)
+        : const [],
   );
 }
 

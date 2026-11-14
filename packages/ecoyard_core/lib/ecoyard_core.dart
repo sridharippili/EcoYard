@@ -7,6 +7,7 @@
 library;
 
 export 'src/content_validator.dart';
+export 'src/habitat_engine.dart';
 export 'src/models.dart';
 export 'src/normalize.dart' show normalizeName;
 export 'src/reference_repository.dart';

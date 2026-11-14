@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 1,
+  "status": "DRAFT written by Claude. Expected outputs were worked out BY HAND from content/*.json and docs/ENGINE_SPEC.md before the engine was run, then compared. A person must read the 'why' lines (especially c02, c11, c19) and, if they agree, promote this file to fixtures/engine_cases.json (see docs/ENGINE_SPEC.md). Once promoted, agents can no longer edit it.",
+  "cases": [
+    {
+      "id": "c01-cardinal-october-yard",
+      "why": "The mockup's trio. Slot 1 = best FREE action = keep-leaf-cover (covers food+shelter, the most). Then add-water-source (water), then plant-native-shrub (nesting, ahead of mark-windows on priority 3 vs 2). Spicebush needs shade/partial so it fits; red cedar is full-sun only so it is hidden (1).",
+      "input": { "birdId": "norcar", "space": "yard", "sun": "partial", "budget": "low", "month": 10, "regionCode": "us-ne", "journal": [] },
+      "expect": {
+        "actionIds": ["keep-leaf-cover", "add-water-source", "plant-native-shrub"],
+        "freeFirstStepId": "keep-leaf-cover",
+        "plantIds": ["arrowwood-viburnum", "american-holly", "flowering-dogwood", "black-eyed-susan", "northern-spicebush"],
+        "plantsHidden": 1,
+        "isGeneric": false,
+        "unmetNeeds": []
+      }
+    },
+    {
+      "id": "c02-chickadee-january-nest-box-shown",
+      "why": "Regression for the critic's finding: a cavity nester in January must be shown the nest box even with several free actions eligible. Slot 1 = free keep-leaf-cover; slot 2 = add-nest-box (it covers nesting and is featured for the chickadee, worth +2); slot 3 = add-water-source (water, still uncovered). Safety has no remedy in January (mark-windows is off-season): unmet.",
+      "input": { "birdId": "bkcchi", "space": "yard", "sun": "full", "budget": "low", "month": 1, "regionCode": "us-ne", "journal": [] },
+      "expect": {
+        "actionIds": ["keep-leaf-cover", "add-nest-box", "add-water-source"],
+        "freeFirstStepId": "keep-leaf-cover",
+        "plantIds": ["white-oak", "arrowwood-viburnum", "serviceberry", "black-eyed-susan", "new-england-aster"],
+        "plantsHidden": 0,
+        "isGeneric": false,
+        "unmetNeeds": ["safety"]
+      }
+    },
+    {
+      "id": "c03-downy-january-dead-wood",
+      "why": "leave-dead-wood is for dowwoo, featured for it, and covers food+shelter+nesting, so it is the free first step. add-water-source covers water. After that no remaining action covers a new need (safety has nothing in January), so only TWO actions are shown: no padding with keep-leaf-cover. White oak is full-sun only so it is hidden for partial sun.",
+      "input": { "birdId": "dowwoo", "space": "yard", "sun": "partial", "budget": "low", "month": 1, "regionCode": "us-ne", "journal": [] },
+      "expect": {
+        "actionIds": ["leave-dead-wood", "add-water-source"],
+        "freeFirstStepId": "leave-dead-wood",
+        "plantIds": ["virginia-creeper", "flowering-dogwood", "serviceberry"],
+        "plantsHidden": 1,
+        "isGeneric": false,
+        "unmetNeeds": ["safety"]
+      }
+    },
+    {
+      "id": "c04-hummingbird-container-july",
+      "why": "Hummingbird has no water need, so water actions cover nothing; the only food action in July for balcony/containers is skip-pesticides. After it, nothing covers a new need, so ONE action is shown. Nothing in a container setup addresses shelter, nesting or safety in July: unmet. Both red tubular flowers tie at 30 (cardinal-flower before trumpet-honeysuckle by id).",
+      "input": { "birdId": "rthhum", "space": "containers", "sun": "full", "budget": "low", "month": 7, "regionCode": "us-ne", "journal": [] },
+      "expect": {
+        "actionIds": ["skip-pesticides"],
+        "freeFirstStepId": "skip-pesticides",
+        "plantIds": ["cardinal-flower", "trumpet-honeysuckle", "purple-coneflower"],
+        "plantsHidden": 0,
+        "isGeneric": false,
+        "unmetNeeds": ["shelter", "nesting", "safety"]
+      }
+    },
+    {
+      "id": "c05-unknown-bird-october-yard",
+      "why": "Unknown species (null birdId): generic advice, bird-specific actions (nest box, dead wood) excluded, every need type counts equally, so the same three as the cardinal. Plants rank by breadth (sum of link weights over all birds): serviceberry 8, dogwood 7, arrowwood 6 = creeper 6, ... Full-sun-only plants (white oak, red cedar, coneflower, aster) are hidden: 4. black-chokeberry has no links so it never appears.",
+      "input": { "birdId": null, "space": "yard", "sun": "partial", "budget": "low", "month": 10, "regionCode": "us-ne", "journal": [] },
+      "expect": {
+        "actionIds": ["keep-leaf-cover", "add-water-source", "plant-native-shrub"],
+        "freeFirstStepId": "keep-leaf-cover",
+        "plantIds": ["serviceberry", "flowering-dogwood", "arrowwood-viburnum", "virginia-creeper", "black-eyed-susan", "american-holly", "cardinal-flower", "common-winterberry", "northern-spicebush", "trumpet-honeysuckle"],
+        "plantsHidden": 4,
+        "isGeneric": true,
+        "unmetNeeds": []
+      }
+    },
+    {
+      "id": "c06-cardinal-free-budget",
+      "why": "Budget 'free': free actions only, and no plants at all, so all 6 linked plants count as hidden. After leaf cover (food, shelter) and water, no FREE action covers a new need, so two actions are shown. Nesting and safety have no free remedy, but a small budget would unlock plant-native-shrub and mark-windows (moreBudget): the UI must say that, not 'nothing can help'.",
+      "input": { "birdId": "norcar", "space": "yard", "sun": "partial", "budget": "free", "month": 10, "regionCode": "us-ne", "journal": [] },
+      "expect": {
+        "actionIds": ["keep-leaf-cover", "add-water-source"],
+        "freeFirstStepId": "keep-leaf-cover",
+        "plantIds": [],
+        "plantsHidden": 6,
+        "moreBudget": {"nesting": ["plant-native-shrub"], "safety": ["mark-windows"]},
+        "isGeneric": false,
+        "unmetNeeds": ["nesting", "safety"]
+      }
+    },
+    {
+      "id": "c07-goldfinch-balcony-september",
+      "why": "Balcony: yard-only actions drop out. leave-seed-heads is the goldfinch's signature action (featured, +2) and free, so it is the free first step. Then add-water-source (water), then mark-windows (safety). Shelter and nesting have no balcony remedy: unmet. New England aster is yard-only: hidden (1).",
+      "input": { "birdId": "amegfi", "space": "balcony", "sun": "full", "budget": "low", "month": 9, "regionCode": "us-ne", "journal": [] },
+      "expect": {
+        "actionIds": ["leave-seed-heads", "add-water-source", "mark-windows"],
+        "freeFirstStepId": "leave-seed-heads",
+        "plantIds": ["black-eyed-susan", "purple-coneflower"],
+        "plantsHidden": 1,
+        "isGeneric": false,
+        "unmetNeeds": ["shelter", "nesting"]
+      }
+    },
+    {
+      "id": "c08-titmouse-shade-no-plants",
+      "why": "Edge case: deep shade. Every plant linked to the titmouse (white oak, dogwood, serviceberry) needs sun, so the plant list is empty and all 3 are reported hidden; the UI must say 'no plant fits this sun'. Actions are unaffected by sun.",
+      "input": { "birdId": "tuftit", "space": "yard", "sun": "shade", "budget": "low", "month": 4, "regionCode": "us-ne", "journal": [] },
+      "expect": {
+        "actionIds": ["keep-leaf-cover", "add-water-source", "plant-native-shrub"],
+        "freeFirstStepId": "keep-leaf-cover",
+        "plantIds": [],
+        "plantsHidden": 3,
+        "isGeneric": false,
+        "unmetNeeds": []
+      }
+    },
+    {
+      "id": "c09-robin-journal-reorders-plants",
+      "why": "Journal rule. Without a journal the two weight-3 plants order by id: common-winterberry then serviceberry. With norcar and bkcchi in the journal, serviceberry also helps bkcchi (+1 = 31) so it moves ahead; holly and dogwood each also help norcar (+1 = 21). Creeper stays 20. June: add-water-source (water) and skip-pesticides (food); the birdbath-scrubbing action would only repeat water, so it is not shown. Nesting and safety have no remedy now.",
+      "input": { "birdId": "amerob", "space": "yard", "sun": "partial", "budget": "low", "month": 6, "regionCode": "us-ne", "journal": ["norcar", "bkcchi"] },
+      "expect": {
+        "actionIds": ["add-water-source", "skip-pesticides"],
+        "freeFirstStepId": "add-water-source",
+        "plantIds": ["serviceberry", "common-winterberry", "american-holly", "flowering-dogwood", "virginia-creeper"],
+        "alsoHelps": { "serviceberry": ["bkcchi"], "american-holly": ["norcar"], "flowering-dogwood": ["norcar"] },
+        "plantsHidden": 1,
+        "isGeneric": false,
+        "unmetNeeds": ["nesting", "safety"]
+      }
+    },
+    {
+      "id": "c10-nuthatch-november",
+      "why": "Nuthatch gets leave-dead-wood (food+shelter+nesting) as slot 1, then water, then mark-windows (safety, in season in November). Only one plant is linked (white oak, full sun).",
+      "input": { "birdId": "whbnut", "space": "yard", "sun": "full", "budget": "low", "month": 11, "regionCode": "us-ne", "journal": [] },
+      "expect": {
+        "actionIds": ["leave-dead-wood", "add-water-source", "mark-windows"],
+        "freeFirstStepId": "leave-dead-wood",
+        "plantIds": ["white-oak"],
+        "plantsHidden": 0,
+        "isGeneric": false,
+        "unmetNeeds": []
+      }
+    },
+    {
+      "id": "c11-wren-march-nest-box-shown",
+      "why": "March, Carolina Wren, everything in season. Slot 1 = free keep-leaf-cover. Slot 2 = add-nest-box: it covers nesting and is featured for the wren (+2), so it beats plant-native-shrub, which would also cover nesting. Slot 3 = add-water-source. (Before the 'featured' rule the shrub took slot 2 and the nest box was never shown.)",
+      "input": { "birdId": "carwre", "space": "yard", "sun": "full", "budget": "any", "month": 3, "regionCode": "us-ne", "journal": [] },
+      "expect": {
+        "actionIds": ["keep-leaf-cover", "add-nest-box", "add-water-source"],
+        "freeFirstStepId": "keep-leaf-cover",
+        "plantIds": ["eastern-red-cedar", "white-oak", "arrowwood-viburnum", "virginia-creeper"],
+        "plantsHidden": 1,
+        "isGeneric": false,
+        "unmetNeeds": []
+      }
+    },
+    {
+      "id": "c12-cardinal-january-no-planting",
+      "why": "Season rule: in January plant-native-shrub is out of season and must not appear. Only leaf cover and water add a need, so two actions are shown (brush pile and seed heads would repeat covered needs). Nesting has a plant remedy (arrowwood viburnum fits full sun) so it is not unmet; safety has none this month. Dogwood and spicebush need partial sun or shade: hidden (2).",
+      "input": { "birdId": "norcar", "space": "yard", "sun": "full", "budget": "low", "month": 1, "regionCode": "us-ne", "journal": [] },
+      "expect": {
+        "actionIds": ["keep-leaf-cover", "add-water-source"],
+        "freeFirstStepId": "keep-leaf-cover",
+        "plantIds": ["arrowwood-viburnum", "american-holly", "eastern-red-cedar", "black-eyed-susan"],
+        "plantsHidden": 2,
+        "isGeneric": false,
+        "unmetNeeds": ["safety"]
+      }
+    },
+    {
+      "id": "c13-unknown-bird-journal-boosts-generic-plants",
+      "why": "Generic mode with a journal of goldfinch + hummingbird. Actions: water, then skip-pesticides (food); scrubbing the birdbath would repeat water, so it is not shown. Journal adds +1 for each journal bird a plant helps: black-eyed-susan 5->6, purple-coneflower 4->6 (helps both), aster 3->4, honeysuckle 3->4, cardinal-flower 3->4. White oak (16) and serviceberry (8) still lead. 12 plants fit full-sun yard; dogwood and spicebush are hidden.",
+      "input": { "birdId": null, "space": "yard", "sun": "full", "budget": "any", "month": 7, "regionCode": "us-ne", "journal": ["amegfi", "rthhum"] },
+      "expect": {
+        "actionIds": ["add-water-source", "skip-pesticides"],
+        "freeFirstStepId": "add-water-source",
+        "plantIds": ["white-oak", "serviceberry", "arrowwood-viburnum", "black-eyed-susan", "eastern-red-cedar", "purple-coneflower", "virginia-creeper", "american-holly", "cardinal-flower", "new-england-aster", "trumpet-honeysuckle", "common-winterberry"],
+        "plantsHidden": 2,
+        "isGeneric": true,
+        "unmetNeeds": []
+      }
+    },
+    {
+      "id": "c14-nuthatch-balcony-shade-may",
+      "why": "Worst case for a nuthatch: balcony, shade. The only linked plant (white oak) needs full sun: none shown, 1 hidden. Balcony offers water, pesticide-free and window actions only; shelter and nesting are unmet.",
+      "input": { "birdId": "whbnut", "space": "balcony", "sun": "shade", "budget": "low", "month": 5, "regionCode": "us-ne", "journal": [] },
+      "expect": {
+        "actionIds": ["add-water-source", "skip-pesticides", "mark-windows"],
+        "freeFirstStepId": "add-water-source",
+        "plantIds": [],
+        "plantsHidden": 1,
+        "isGeneric": false,
+        "unmetNeeds": ["shelter", "nesting"]
+      }
+    },
+    {
+      "id": "c15-month-zero-rejected",
+      "why": "Month 0 is a programming error, never silently clamped.",
+      "input": { "birdId": "norcar", "space": "yard", "sun": "partial", "budget": "low", "month": 0, "regionCode": "us-ne", "journal": [] },
+      "expect": { "error": "ArgumentError" }
+    },
+    {
+      "id": "c16-month-thirteen-rejected",
+      "why": "Month 13 is a programming error.",
+      "input": { "birdId": "norcar", "space": "yard", "sun": "partial", "budget": "low", "month": 13, "regionCode": "us-ne", "journal": [] },
+      "expect": { "error": "ArgumentError" }
+    },
+    {
+      "id": "c17-unknown-bird-id-rejected",
+      "why": "A birdId that is not in the content is a bug in the caller (an unresolved species is null, not a made-up id).",
+      "input": { "birdId": "notabird", "space": "yard", "sun": "partial", "budget": "low", "month": 5, "regionCode": "us-ne", "journal": [] },
+      "expect": { "error": "ArgumentError" }
+    },
+    {
+      "id": "c18-other-region-rejected",
+      "why": "Content covers us-ne only. Any other region code must fail loudly rather than return Northeast advice for a Colorado yard. The UI maps a state (NJ) to us-ne before calling.",
+      "input": { "birdId": "norcar", "space": "yard", "sun": "partial", "budget": "low", "month": 5, "regionCode": "us-west", "journal": [] },
+      "expect": { "error": "UnsupportedRegionException" }
+    },
+    {
+      "id": "c19-goldfinch-october-unknown-journal-id",
+      "why": "The journal comes from stored sightings and may hold ids from older content. An unknown journal id is ignored, never an error: same result as with an empty journal. The goldfinch's signature action leave-seed-heads (featured) now takes the free first slot; plant-native-shrub covers shelter and nesting (2 new needs); add-water-source covers water.",
+      "input": { "birdId": "amegfi", "space": "yard", "sun": "full", "budget": "low", "month": 10, "regionCode": "us-ne", "journal": ["ghost-bird"] },
+      "expect": {
+        "actionIds": ["leave-seed-heads", "plant-native-shrub", "add-water-source"],
+        "freeFirstStepId": "leave-seed-heads",
+        "plantIds": ["black-eyed-susan", "purple-coneflower", "new-england-aster"],
+        "plantsHidden": 0,
+        "isGeneric": false,
+        "unmetNeeds": []
+      }
+    },
+    {
+      "id": "c20-unknown-bird-free-budget-balcony-january",
+      "why": "Generic + free + balcony + January: only two actions are possible at all (add-water-source, leave-seed-heads), so fewer than three are returned. No plants on a free budget; all 14 linked plants are reported hidden.",
+      "input": { "birdId": null, "space": "balcony", "sun": "full", "budget": "free", "month": 1, "regionCode": "us-ne", "journal": [] },
+      "expect": {
+        "actionIds": ["add-water-source", "leave-seed-heads"],
+        "freeFirstStepId": "add-water-source",
+        "plantIds": [],
+        "plantsHidden": 14,
+        "isGeneric": true,
+        "unmetNeeds": []
+      }
+    },
+    {
+      "id": "c21-hummingbird-yard-september",
+      "why": "Hummingbird again, now in a yard in September. No water need, so no water action is chosen: keep-leaf-cover (food+shelter), then plant-native-shrub (nesting, ahead of mark-windows on id order of equal gain), then mark-windows (safety). Purple coneflower is full-sun only: hidden (1).",
+      "input": { "birdId": "rthhum", "space": "yard", "sun": "partial", "budget": "any", "month": 9, "regionCode": "us-ne", "journal": [] },
+      "expect": {
+        "actionIds": ["keep-leaf-cover", "plant-native-shrub", "mark-windows"],
+        "freeFirstStepId": "keep-leaf-cover",
+        "plantIds": ["cardinal-flower", "trumpet-honeysuckle"],
+        "plantsHidden": 1,
+        "isGeneric": false,
+        "unmetNeeds": []
+      }
+    }
+  ]
+}
