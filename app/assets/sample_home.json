@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "note": "Sample data for the starter shell only. Real content comes from content/*.json in Phase 2.",
+  "greeting": "Hi there!",
+  "subtitle": "Let's make a bird-friendly space today.",
+  "weather": { "place": "Sample location", "summary": "Mostly sunny · H 61° · L 44°", "tempF": 58 },
+  "tip": {
+    "title": "Today's Habitat Tip",
+    "body": "Leave this fall's leaves under your shrubs. Insects shelter there, and birds feed on them in spring. Free."
+  }
+}

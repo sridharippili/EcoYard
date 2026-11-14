@@ -1,0 +1,57 @@
+# macOS
+.DS_Store
+
+# Secrets — never committed. Use --dart-define-from-file=.env.json locally.
+.env
+.env.*
+*.pem
+*.p8
+*.p12
+*.jks
+*.keystore
+key.properties
+
+# ML models — downloaded at runtime, never committed
+*.tflite
+*.mlmodel
+*.mlmodelc
+*.onnx
+
+# Dart / Flutter
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+coverage/
+*.iml
+.idea/
+.fvm/flutter_sdk
+
+# iOS (Flutter host project)
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+xcuserdata/
+DerivedData/
+*.ipa
+*.dSYM.zip
+
+# Android (Flutter host project)
+**/android/.gradle/
+**/android/local.properties
+**/android/captures/
+*.apk
+*.aab
+
+# Claude Code — personal settings stay local; shared settings/agents/hooks are committed
+.claude/settings.local.json
+
+# reference/ — GardenEar's own machine-local files
+reference/**/.claude/
+reference/**/xcuserdata/
+reference/**/Pods/

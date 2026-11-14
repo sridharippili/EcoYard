@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest   # Linux: ~10x cheaper than macOS. iOS builds stay local until release.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Fetch packages
+        run: |
+          for p in $(find . -name pubspec.yaml -not -path './reference/*' -not -path '*/.dart_tool/*' -exec dirname {} \;); do
+            if grep -Eq 'sdk:[[:space:]]*flutter' "$p/pubspec.yaml"; then (cd "$p" && flutter pub get); else (cd "$p" && dart pub get); fi
+          done
+
+      - name: Format check
+        run: |
+          files=$(git ls-files '*.dart' | grep -v '^reference/' | grep -vE '\.(g|freezed|mocks)\.dart$' || true)
+          [ -z "$files" ] || dart format --output=none --set-exit-if-changed $files
+
+      - name: Analyze, test, validate content
+        run: bash scripts/hooks/pre-push.sh
