@@ -53,6 +53,8 @@ Things that cost time once. Add to this list rather than rediscovering them.
 - NatureLM returns a free-text common name with no scientific name. BirdNET returns `Scientific_Common`. Both must go through `SpeciesResolver`
 - GardenEar's `Theme.swift` hardcodes light/dark colours as separate constants. Use a proper Flutter `ThemeData` light/dark pair in the rewrite
 - GardenEar had a real Hugging Face token hardcoded in `Resources/Info.plist` (`HF_TOKEN`). Redacted in `reference/`, but it is in GardenEar's GitHub history — **revoke it on huggingface.co**. In EcoYard, tokens go in untracked `.env.json` only
+- **GardenEar's offline mode never worked as shipped:** `OfflineModelManager` downloads from a GitHub release URL (`.../releases/download/v2.4/...tflite`) that now 404s, and its bundled `Resources/BirdNET_GLOBAL_6K_V2.4_Labels.txt` contains the literal text `404: Not Found`. Do not port either. Official source: Zenodo record 15050749, `BirdNET_v2.4_tflite.zip` (77 MB, md5 c13f7fd28a5f7a3b092cd993087f93f7): `audio-model.tflite` is the FP32 model, `labels/en_us.txt` is the 6,522-line `Scientific_Common` label list. The model must be fetched/hosted by us; the GitHub repo no longer ships it
+- Spike: `record` ^5.x fails to build (record_linux/platform_interface mismatch). Use `record` ^7.2.0 (spike uses it). Re-check API when porting to the app
 - Flutter 3.50.0 stable (Dart 3.14.0) at `~/development/flutter`, analytics off. This Mac has only Command Line Tools — full Xcode, CocoaPods and Android Studio still needed (`flutter doctor`)
 - Flutter 3.50 deprecates `package:flutter/material.dart` in favour of `package:material_ui` (5 info-level analyzer notices). Left as is; adopting material_ui is a new dependency — ask first
 - Xcode 27.2 + iOS 27.2 simulator runtime installed. Run on simulator without CocoaPods (works while no plugins): `cd app && flutter build ios --simulator --debug`, then `xcrun simctl install <device> build/ios/iphonesimulator/Runner.app` and `xcrun simctl launch <device> com.sridharippili.ecoyard`
@@ -66,6 +68,7 @@ Things that cost time once. Add to this list rather than rediscovering them.
 
 Newest first. One line each: date, what changed, where.
 
+- 2026-11-14 — Spike partial result (iOS Simulator): BirdNET FP32 loads via tflite_flutter in 358 ms, input [1,144000], output [1,6522], 6,522 labels match; no Swift/Kotlin written (criterion 4 holding). NOT yet proven: top-1 accuracy on 5 clips, <2 s inference, real-device mic at 48 kHz, Android
 - 2026-11-14 — Phase 0.5 spike project created at ~/Downloads/birdnet_spike (outside repo): analyzes clean, `pod install` OK with record 5.x + tflite_flutter 0.11. Missing: BirdNET model + labels in assets/, test clips, real iPhone
 - 2026-11-14 — Toolchain: Ruby 3.3.13 (rbenv) + CocoaPods 1.17.0 installed; flutter doctor green for iOS. Ready for the BirdNET spike
 
