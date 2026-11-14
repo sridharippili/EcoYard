@@ -23,6 +23,7 @@ Append one line per decision. Never delete; supersede with a new line.
 - 2026-11-14 — Android is a future target, reached by porting `EcoYardCore`, not by a cross-platform framework
 - 2026-11-14 — New repo rather than evolving GardenEar in place. GardenEar source is copied in as a starting point; the old repo is frozen as reference, not a dependency
 - 2026-11-14 — One product, not two apps. EcoYard supersedes GardenEar
+- 2026-11-14 — v1 identification is ONLINE ONLY. Chain: (1) NatureLM via gardenear-router `/health` then `/identify`; (2) if unresponsive, BirdNET online (`ippili7-gardenear-api.hf.space/analyze`, multipart m4a); (3) neither reachable → fail honestly with a clear offline message. On-device BirdNET is deferred, not cancelled. (User decision; supersedes the on-device step in PLAN.md §0.1 for v1)
 - 2026-11-14 — Framework: Flutter for iOS and Android from one codebase. No native Swift or Kotlin feature code. Supersedes the iOS 18/Swift 6 and "not by a cross-platform framework" lines above. GardenEar is rewritten in Dart using its Swift source as the spec
 
 ## Open questions
