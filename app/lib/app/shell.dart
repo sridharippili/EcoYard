@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../features/birds/birds_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/placeholder/placeholder_screen.dart';
+import 'app_environment.dart';
 
 /// Five-tab bottom navigation, as in the mockup.
 class Shell extends StatefulWidget {
-  const Shell({super.key});
+  const Shell({super.key, required this.env});
+
+  final AppEnvironment env;
 
   @override
   State<Shell> createState() => _ShellState();
@@ -14,21 +18,26 @@ class Shell extends StatefulWidget {
 class _ShellState extends State<Shell> {
   int _index = 0;
 
-  static const _titles = ['Home', 'Plants', 'Birds', 'My Plan', 'Settings'];
-  static const _phase = [
-    '',
-    'Native Plant Finder arrives in Phase 5.',
-    'Bird identification arrives in Phase 1, after the BirdNET spike.',
-    'Your habitat plan arrives in Phase 4.',
-    'Privacy & Settings arrive in Phase 6.',
-  ];
-
   @override
   Widget build(BuildContext context) {
     final screens = <Widget>[
-      HomeScreen(onNavigate: (i) => setState(() => _index = i)),
-      for (var i = 1; i < 5; i++)
-        PlaceholderScreen(title: _titles[i], message: _phase[i]),
+      HomeScreen(
+        onNavigate: (i) => setState(() => _index = i),
+        loadSample: widget.env.loadHomeSample,
+      ),
+      const PlaceholderScreen(
+        title: 'Plants',
+        message: 'Native Plant Finder arrives in Phase 5.',
+      ),
+      BirdsScreen(env: widget.env),
+      const PlaceholderScreen(
+        title: 'My Plan',
+        message: 'Your habitat plan arrives in Phase 4.',
+      ),
+      const PlaceholderScreen(
+        title: 'Settings',
+        message: 'Privacy & Settings arrive in Phase 6.',
+      ),
     ];
     return Scaffold(
       body: SafeArea(

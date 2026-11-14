@@ -1,0 +1,19 @@
+name: bird_audio
+description: Bird identification providers, fallback chain and recorder for EcoYard.
+publish_to: none
+version: 0.0.1
+
+environment:
+  sdk: ^3.4.0
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.6.0
+  path_provider: ^2.1.6
+  record: ^7.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

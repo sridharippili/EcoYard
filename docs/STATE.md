@@ -7,10 +7,10 @@ The working memory for this repo. Keep it short. If this file passes
 
 ## Current state
 
-- **Phase:** 0 done (repo hygiene, guardrails, agents). Next: 0.5 — BirdNET Flutter spike (PLAN.md §7)
-- **Status:** Phase 0 repo work complete. Still open from Phase 0 (user tasks): privacy copy in mockup, Kaggle notebook audit, privacy policy draft
-- **Build:** no Dart code yet. Flutter SDK not installed on this machine
-- **Blocked on:** Flutter install; a physical iPhone + Android phone for the spike
+- **Phase:** 1 — online identification pipeline: built and running in the iOS Simulator. Not closed: Android untested, no real iPhone yet, router token format unknown, privacy audits open
+- **Status:** record (m4a, 10 s cap) → NatureLM via router → BirdNET online fallback → honest failure; Birds tab shows the answering service. Verified live in the Simulator (BirdNET answered, NatureLM had no backend running)
+- **Build:** `flutter analyze` clean (infos only), 21 app tests + 47 `bird_audio` tests green
+- **Blocked on:** nothing for Phase 2. Open items below
 - **Setup after clone:** `scripts/setup.sh` (enables `.githooks/`)
 
 ## Decisions made
@@ -57,7 +57,12 @@ Things that cost time once. Add to this list rather than rediscovering them.
 - **GardenEar's offline mode never worked as shipped:** `OfflineModelManager` downloads from a GitHub release URL (`.../releases/download/v2.4/...tflite`) that now 404s, and its bundled `Resources/BirdNET_GLOBAL_6K_V2.4_Labels.txt` contains the literal text `404: Not Found`. Do not port either. Official source: Zenodo record 15050749, `BirdNET_v2.4_tflite.zip` (77 MB, md5 c13f7fd28a5f7a3b092cd993087f93f7): `audio-model.tflite` is the FP32 model, `labels/en_us.txt` is the 6,522-line `Scientific_Common` label list. The model must be fetched/hosted by us; the GitHub repo no longer ships it
 - Spike: `record` ^5.x fails to build (record_linux/platform_interface mismatch). Use `record` ^7.2.0 (spike uses it). Re-check API when porting to the app
 - Flutter 3.50.0 stable (Dart 3.14.0) at `~/development/flutter`, analytics off. This Mac has only Command Line Tools — full Xcode, CocoaPods and Android Studio still needed (`flutter doctor`)
-- Flutter 3.50 deprecates `package:flutter/material.dart` in favour of `package:material_ui` (5 info-level analyzer notices). Left as is; adopting material_ui is a new dependency — ask first
+- Flutter 3.50 deprecates `package:flutter/material.dart` in favour of `package:material_ui` (5 info-level analyzer notices). `material_ui` is already declared in app/pubspec.yaml (added by the 3.50 `flutter create` template, unused), so switching imports needs no new package. Not done yet
+- **Live service facts (2026-11-14):** router `/health` is open and instant, returns `{"status":"ok","active_providers":[]}` when the Kaggle notebook is off (then NatureLM is skipped). The BirdNET Space has no health route (`/` and `/docs` return 404) and took 19 s to wake from sleep; `/analyze` accepted our m4a. Router `/identify` auth is still unknown: GardenEar sent no header, but a new router token exists. Ask the user the header format before relying on it
+- **BirdNET returns non-bird classes** ("Human vocal", "Gun"; probably also Engine, Dog, etc.). Phase 1 shows them as "Possible match". The Phase 2 SpeciesResolver must treat them as "not a bird", from a JSON list, not Dart
+- Birds tab probes service health on app start (IndexedStack builds every tab), which sends two harmless GETs and wakes Render/the Space. Make it lazy if that bothers you
+- iOS Simulator tap tool and screenshots lag by a few seconds; twice the mic seemed to start without a Record tap. Could not reproduce; a widget test now pins "no Record tap, no recording"
+- Widget tests: assets load through `rootBundle` never completes in 2nd+ test under fake async. Inject loaders through `AppEnvironment` (done for Home)
 - Xcode 27.2 + iOS 27.2 simulator runtime installed. Run on simulator without CocoaPods (works while no plugins): `cd app && flutter build ios --simulator --debug`, then `xcrun simctl install <device> build/ios/iphonesimulator/Runner.app` and `xcrun simctl launch <device> com.sridharippili.ecoyard`
 - CocoaPods 1.17.0 runs on Ruby 3.3.13 under `~/.rbenv/versions/3.3.13` (rbenv + libyaml built from source; no Homebrew). System Ruby 2.6 is too old for CocoaPods, do not use it. Before iOS builds with plugins, put it on PATH: `export PATH="$HOME/.rbenv/versions/3.3.13/bin:$PATH" LANG=en_US.UTF-8`. Android SDK still not installed (paused by choice)
 - Preview the starter in Chrome: `cd app && flutter build web && cd build/web && python3 -m http.server 8765`
@@ -68,6 +73,9 @@ Things that cost time once. Add to this list rather than rediscovering them.
 ## Changelog
 
 Newest first. One line each: date, what changed, where.
+
+- 2026-11-14 — Phase 1: packages/ecoyard_core (empty, pure Dart) + packages/bird_audio (ProviderChain with health cache + timeouts, NatureLM and BirdNET-online providers, recorder, parser; packages added with approval: http, record ^7.2, path_provider) + app Birds tab (controller, privacy badge without "not kept"), AppEnvironment injection. Verified live in Simulator. [scope change] no SQLite/save-sighting yet; Android and real-iPhone checks outstanding
+- 2026-11-14 — Critic (run as general-purpose stand-in; .claude/agents load only at session start) reviewed Phase 1: adopted noDetection-is-final, null NatureLM confidence, timeouts, probe never blocks Record, no "not kept" until audits, HTTP tests, m4a + 10 s cap, mic Info.plist string
 
 - 2026-11-14 — Spike partial result (iOS Simulator): BirdNET FP32 loads via tflite_flutter in 358 ms, input [1,144000], output [1,6522], 6,522 labels match; no Swift/Kotlin written (criterion 4 holding). NOT yet proven: top-1 accuracy on 5 clips, <2 s inference, real-device mic at 48 kHz, Android
 - 2026-11-14 — Phase 0.5 spike project created at ~/Downloads/birdnet_spike (outside repo): analyzes clean, `pod install` OK with record 5.x + tflite_flutter 0.11. Missing: BirdNET model + labels in assets/, test clips, real iPhone

@@ -1,27 +1,26 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 
 import '../../app/theme.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.onNavigate});
+  const HomeScreen({
+    super.key,
+    required this.onNavigate,
+    required this.loadSample,
+  });
 
   /// Switches the bottom-nav tab (index into Home/Plants/Birds/My Plan/Settings).
   final ValueChanged<int> onNavigate;
+
+  /// Supplies the sample Home content.
+  final Future<Map<String, dynamic>> Function() loadSample;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late final Future<Map<String, dynamic>> _sample = _load();
-
-  Future<Map<String, dynamic>> _load() async {
-    final raw = await rootBundle.loadString('assets/sample_home.json');
-    return jsonDecode(raw) as Map<String, dynamic>;
-  }
+  late final Future<Map<String, dynamic>> _sample = widget.loadSample();
 
   @override
   Widget build(BuildContext context) {

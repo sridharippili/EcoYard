@@ -55,3 +55,6 @@ DerivedData/
 reference/**/.claude/
 reference/**/xcuserdata/
 reference/**/Pods/
+
+# Package lockfiles (only the app pins versions)
+packages/*/pubspec.lock
