@@ -56,7 +56,7 @@ Things that cost time once. Add to this list rather than rediscovering them.
 - Flutter 3.50.0 stable (Dart 3.14.0) at `~/development/flutter`, analytics off. This Mac has only Command Line Tools — full Xcode, CocoaPods and Android Studio still needed (`flutter doctor`)
 - Flutter 3.50 deprecates `package:flutter/material.dart` in favour of `package:material_ui` (5 info-level analyzer notices). Left as is; adopting material_ui is a new dependency — ask first
 - Xcode 27.2 + iOS 27.2 simulator runtime installed. Run on simulator without CocoaPods (works while no plugins): `cd app && flutter build ios --simulator --debug`, then `xcrun simctl install <device> build/ios/iphonesimulator/Runner.app` and `xcrun simctl launch <device> com.sridharippili.ecoyard`
-- CocoaPods NOT installed: system Ruby is 2.6, current CocoaPods needs 3.x (gem dependency chain fails). Phase 1 plugins (`tflite_flutter`, `record`) need it — install a modern Ruby first, ask before downloading
+- CocoaPods 1.17.0 runs on Ruby 3.3.13 under `~/.rbenv/versions/3.3.13` (rbenv + libyaml built from source; no Homebrew). System Ruby 2.6 is too old for CocoaPods, do not use it. Before iOS builds with plugins, put it on PATH: `export PATH="$HOME/.rbenv/versions/3.3.13/bin:$PATH" LANG=en_US.UTF-8`. Android SDK still not installed (paused by choice)
 - Preview the starter in Chrome: `cd app && flutter build web && cd build/web && python3 -m http.server 8765`
 - No Homebrew on this machine. Hooks are plain shell (`core.hooksPath`), no lefthook/Husky/Node needed
 
@@ -65,6 +65,9 @@ Things that cost time once. Add to this list rather than rediscovering them.
 ## Changelog
 
 Newest first. One line each: date, what changed, where.
+
+- 2026-11-14 — Phase 0.5 spike project created at ~/Downloads/birdnet_spike (outside repo): analyzes clean, `pod install` OK with record 5.x + tflite_flutter 0.11. Missing: BirdNET model + labels in assets/, test clips, real iPhone
+- 2026-11-14 — Toolchain: Ruby 3.3.13 (rbenv) + CocoaPods 1.17.0 installed; flutter doctor green for iOS. Ready for the BirdNET spike
 
 - 2026-11-14 — Starter shell in app/ (iOS+web, no new packages): theme, 5-tab nav, Home from mockup, placeholders; analyze clean (5 infos), 1 widget test passes, verified in Chrome. NOT Phase 1 — no identification yet; spike still gates it
 - 2026-11-14 — Phase 0: GardenEar as plain files in reference/ (HF token redacted), spike files moved to ../birdnet_spike, CLAUDE.md to root rewritten for Flutter, mockup+spec into docs/design/, .githooks + scripts/hooks, .claude agents/hooks/settings, CI workflow, Flutter .gitignore
