@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "reviewStatus": "draft",
+  "region": "us-ne",
+  "sources": [
+    "eBird/Clements taxonomy (names and species codes)",
+    "BirdNET V2.4 label list (names of its non-bird classes)"
+  ],
+  "note": "Species-level names only. Never add a generic name such as 'chickadee', 'wren', 'woodpecker', 'finch' or 'jay': with a small slice it would turn a different bird into one of ours. Two bare names are kept on purpose because in an Eastern-US app they mean one species and models really say them: 'cardinal' and 'robin'. Revisit both when the content grows beyond the Eastern US. Each name is normalized with the same function the resolver uses (lowercase, punctuation to spaces).",
+  "aliases": [
+    { "taxonId": "norcar", "names": ["cardinal", "red cardinal", "northern cardinal", "cardinalis cardinalis"] },
+    { "taxonId": "blujay", "names": ["blue jay", "cyanocitta cristata"] },
+    { "taxonId": "amerob", "names": ["american robin", "robin", "turdus migratorius"] },
+    { "taxonId": "carwre", "names": ["carolina wren", "thryothorus ludovicianus"] },
+    { "taxonId": "bkcchi", "names": ["black capped chickadee", "black-capped chickadee", "poecile atricapillus", "parus atricapillus"] },
+    { "taxonId": "tuftit", "names": ["tufted titmouse", "baeolophus bicolor", "parus bicolor"] },
+    { "taxonId": "amegfi", "names": ["american goldfinch", "spinus tristis", "carduelis tristis"] },
+    { "taxonId": "dowwoo", "names": ["downy woodpecker", "dryobates pubescens", "picoides pubescens"] },
+    { "taxonId": "whbnut", "names": ["white breasted nuthatch", "white-breasted nuthatch", "sitta carolinensis"] },
+    { "taxonId": "rthhum", "names": ["ruby throated hummingbird", "ruby-throated hummingbird", "archilochus colubris"] }
+  ],
+  "notABird": [
+    "human vocal", "human non-vocal", "human whistle", "dog", "engine", "environmental",
+    "fireworks", "gun", "noise", "power tools", "siren"
+  ],
+  "noSpeciesPhrases": [
+    "no bird", "no bird detected", "no bird heard", "no birds", "no bird sound", "no species",
+    "unknown", "unknown bird", "unidentified", "unidentified bird", "none", "n/a",
+    "background noise", "silence", "cannot identify", "unable to identify", "not a bird"
+  ]
+}

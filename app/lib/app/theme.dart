@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// EcoYard palette, taken from docs/design/EcoYard_UI_Mockup.png.
 class EcoColors {

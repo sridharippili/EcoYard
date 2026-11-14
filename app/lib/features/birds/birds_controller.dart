@@ -8,11 +8,10 @@ enum BirdsPhase { idle, recording, identifying, result, failed }
 /// State for the Birds tab: record -> identify -> show which service answered.
 class BirdsController extends ChangeNotifier {
   BirdsController({
-    required ClipRecorder recorder,
-    required ProviderChain chain,
+    required this._recorder,
+    required this._chain,
     this.maxRecording = const Duration(seconds: 10),
-  }) : _recorder = recorder,
-       _chain = chain;
+  });
 
   final ClipRecorder _recorder;
   final ProviderChain _chain;

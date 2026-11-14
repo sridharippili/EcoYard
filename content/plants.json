@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "reviewStatus": "draft",
+  "region": "us-ne",
+  "sources": [
+    "USDA PLANTS Database (nativity; public domain)",
+    "Tallamy, D. Bringing Nature Home (host plants for caterpillars)",
+    "Cornell Lab of Ornithology, All About Birds (what birds eat)"
+  ],
+  "note": "Vertical slice: 15 plants for NJ/NY/PA/CT. Hand-written draft; nativity, sizes and bloom months must be checked against USDA PLANTS by a person before release. Photos are not sourced yet (status 'pending').",
+  "plants": [
+    {
+      "id": "black-eyed-susan", "commonName": "Black-eyed Susan", "scientificName": "Rudbeckia hirta",
+      "plantType": "perennial", "nativity": "native-to-region",
+      "sun": ["full", "partial"], "water": "low", "heightFt": [1, 3], "bloom": { "startMonth": 6, "endMonth": 10 },
+      "benefits": ["seeds", "nectar"], "spaces": ["yard", "balcony", "containers"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Short-lived perennial that reseeds itself. Leave the seed heads standing for finches."
+    },
+    {
+      "id": "purple-coneflower", "commonName": "Purple Coneflower", "scientificName": "Echinacea purpurea",
+      "plantType": "perennial", "nativity": "eastern-us",
+      "sun": ["full"], "water": "low", "heightFt": [2, 4], "bloom": { "startMonth": 6, "endMonth": 9 },
+      "benefits": ["seeds", "nectar"], "spaces": ["yard", "balcony", "containers"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Native to the eastern US but not to every part of the Northeast. Widely planted. Leave seed heads for goldfinches."
+    },
+    {
+      "id": "new-england-aster", "commonName": "New England Aster", "scientificName": "Symphyotrichum novae-angliae",
+      "plantType": "perennial", "nativity": "native-to-region",
+      "sun": ["full"], "water": "medium", "heightFt": [3, 6], "bloom": { "startMonth": 8, "endMonth": 10 },
+      "benefits": ["nectar", "seeds"], "spaces": ["yard"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Late-season food for bees and butterflies, then seeds for birds."
+    },
+    {
+      "id": "american-holly", "commonName": "American Holly", "scientificName": "Ilex opaca",
+      "plantType": "tree", "nativity": "native-to-region",
+      "sun": ["full", "partial", "shade"], "water": "medium", "heightFt": [15, 50], "bloom": { "startMonth": 5, "endMonth": 6 },
+      "benefits": ["berries", "cover"], "spaces": ["yard"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Evergreen. Only female plants bear berries, and they need a male holly nearby."
+    },
+    {
+      "id": "eastern-red-cedar", "commonName": "Eastern Red Cedar", "scientificName": "Juniperus virginiana",
+      "plantType": "tree", "nativity": "native-to-region",
+      "sun": ["full"], "water": "low", "heightFt": [30, 60], "bloom": { "startMonth": 3, "endMonth": 4 },
+      "benefits": ["cover", "berries"], "spaces": ["yard"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Evergreen. Dense winter cover; the blue berry-like cones are eaten by many birds."
+    },
+    {
+      "id": "serviceberry", "commonName": "Serviceberry", "scientificName": "Amelanchier canadensis",
+      "plantType": "shrub", "nativity": "native-to-region",
+      "sun": ["full", "partial"], "water": "medium", "heightFt": [6, 25], "bloom": { "startMonth": 3, "endMonth": 4 },
+      "benefits": ["berries", "host-plant", "nectar"], "spaces": ["yard"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Early white flowers, then June fruit that birds eat quickly."
+    },
+    {
+      "id": "northern-spicebush", "commonName": "Northern Spicebush", "scientificName": "Lindera benzoin",
+      "plantType": "shrub", "nativity": "native-to-region",
+      "sun": ["partial", "shade"], "water": "medium", "heightFt": [6, 12], "bloom": { "startMonth": 3, "endMonth": 4 },
+      "benefits": ["berries", "cover", "host-plant"], "spaces": ["yard"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Does well in part shade. Red berries in late summer on female plants. Host plant for the spicebush swallowtail."
+    },
+    {
+      "id": "flowering-dogwood", "commonName": "Flowering Dogwood", "scientificName": "Cornus florida",
+      "plantType": "tree", "nativity": "native-to-region",
+      "sun": ["partial"], "water": "medium", "heightFt": [15, 30], "bloom": { "startMonth": 4, "endMonth": 5 },
+      "benefits": ["berries", "nectar"], "spaces": ["yard"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Small tree. Red fruit in fall is eaten by many birds."
+    },
+    {
+      "id": "virginia-creeper", "commonName": "Virginia Creeper", "scientificName": "Parthenocissus quinquefolia",
+      "plantType": "vine", "nativity": "native-to-region",
+      "sun": ["full", "partial", "shade"], "water": "low", "heightFt": [30, 50], "bloom": { "startMonth": 6, "endMonth": 8 },
+      "benefits": ["berries", "cover"], "spaces": ["yard"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Fast, vigorous climbing vine. Blue berries in fall. Do not confuse it with poison ivy: Virginia creeper has five leaflets."
+    },
+    {
+      "id": "common-winterberry", "commonName": "Common Winterberry", "scientificName": "Ilex verticillata",
+      "plantType": "shrub", "nativity": "native-to-region",
+      "sun": ["full", "partial"], "water": "high", "heightFt": [3, 12], "bloom": { "startMonth": 6, "endMonth": 7 },
+      "benefits": ["berries", "cover"], "spaces": ["yard"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Loses its leaves; red berries last into winter. Tolerates wet soil. Needs a male plant nearby for female plants to fruit."
+    },
+    {
+      "id": "arrowwood-viburnum", "commonName": "Arrowwood Viburnum", "scientificName": "Viburnum dentatum",
+      "plantType": "shrub", "nativity": "native-to-region",
+      "sun": ["full", "partial"], "water": "medium", "heightFt": [6, 10], "bloom": { "startMonth": 5, "endMonth": 6 },
+      "benefits": ["berries", "host-plant", "cover", "nectar"], "spaces": ["yard"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Dense, rounded shrub. Blue-black fruit in early fall."
+    },
+    {
+      "id": "black-chokeberry", "commonName": "Black Chokeberry", "scientificName": "Aronia melanocarpa",
+      "plantType": "shrub", "nativity": "native-to-region",
+      "sun": ["full", "partial"], "water": "medium", "heightFt": [3, 6], "bloom": { "startMonth": 4, "endMonth": 5 },
+      "benefits": ["berries", "nectar"], "spaces": ["yard", "containers"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Compact shrub with white spring flowers, dark fruit and bright fall color."
+    },
+    {
+      "id": "white-oak", "commonName": "White Oak", "scientificName": "Quercus alba",
+      "plantType": "tree", "nativity": "native-to-region",
+      "sun": ["full"], "water": "medium", "heightFt": [50, 80], "bloom": { "startMonth": 4, "endMonth": 5 },
+      "benefits": ["host-plant", "seeds", "cover"], "spaces": ["yard"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Large, slow-growing tree. Oaks host more kinds of caterpillars than almost any other native tree, and acorns feed jays, titmice and nuthatches."
+    },
+    {
+      "id": "trumpet-honeysuckle", "commonName": "Trumpet Honeysuckle", "scientificName": "Lonicera sempervirens",
+      "plantType": "vine", "nativity": "native-to-region",
+      "sun": ["full", "partial"], "water": "medium", "heightFt": [10, 20], "bloom": { "startMonth": 4, "endMonth": 9 },
+      "benefits": ["nectar", "berries"], "spaces": ["yard", "balcony", "containers"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Native, non-invasive vine with red tubular flowers. Needs a trellis or fence. Not the invasive Japanese honeysuckle."
+    },
+    {
+      "id": "cardinal-flower", "commonName": "Cardinal Flower", "scientificName": "Lobelia cardinalis",
+      "plantType": "perennial", "nativity": "native-to-region",
+      "sun": ["partial", "full"], "water": "high", "heightFt": [2, 4], "bloom": { "startMonth": 7, "endMonth": 9 },
+      "benefits": ["nectar"], "spaces": ["yard", "containers"], "costTier": "low",
+      "photo": { "status": "pending" },
+      "note": "Likes moist soil. Bright red flower spikes, a favorite of hummingbirds."
+    }
+  ]
+}

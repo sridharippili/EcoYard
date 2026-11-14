@@ -7,11 +7,26 @@ The working memory for this repo. Keep it short. If this file passes
 
 ## Current state
 
-- **Phase:** 1 — online identification pipeline: built and running in the iOS Simulator. Not closed: Android untested, no real iPhone yet, router token format unknown, privacy audits open
-- **Status:** record (m4a, 10 s cap) → NatureLM via router → BirdNET online fallback → honest failure; Birds tab shows the answering service. Verified live in the Simulator (BirdNET answered, NatureLM had no backend running)
-- **Build:** `flutter analyze` clean (infos only), 21 app tests + 47 `bird_audio` tests green
-- **Blocked on:** nothing for Phase 2. Open items below
+- **Phase:** 2 — content + SpeciesResolver: built, tested, not yet wired into the app (no UI by design; Phase 4 shows it)
+- **Status:** `content/` has the 10-bird / 15-plant slice as an unreviewed DRAFT (all six files `reviewStatus: draft`, all plant photos `pending`). `ecoyard_core` has models, ReferenceRepository, content validator, SpeciesResolver. Phase 1 loose ends still open (below)
+- **Build:** `scripts/hooks/pre-push.sh` passes end to end: app 21 + ecoyard_core 145 (+1 opt-in skipped) + bird_audio 47 tests, analyzers clean, `validate_content` OK (normal), FAILS under `--strict` by design
+- **Release gate:** `scripts/release_check.sh` (runs `validate_content --strict` + all analyze/test) must pass before any public build or external TestFlight. It needs every content file `reviewStatus: reviewed` WITH `reviewedBy` and `reviewedOn`, and real plant photos. NOT yet wired into CI or hooks (those files are guarded against agent edits): the user should add `bash scripts/release_check.sh` to the release workflow
 - **Setup after clone:** `scripts/setup.sh` (enables `.githooks/`)
+
+## Known gaps handed to Phase 3 (HabitatEngine)
+
+- A bird need can have NO remedy in the content: Ruby-throated Hummingbird lists no water need; cavity nesters (chickadee, titmouse, nuthatch, woodpecker) can only be helped by the new nest-box / dead-wood actions, never by a plant. The engine must show "no action available" rather than a need with nothing to do
+- The `safety` need appears only on an action (mark-windows), on no bird. Decide whether safety actions are always eligible
+- A plant is never linked for `nesting` unless it gives nesting cover soon after planting (trees take decades to grow cavities): keep that rule when scaling content
+- Content rows a person must check before release (from the critic): tip-mar timing wording, `norcar`/`northern-spicebush`, `carwre`/`white-oak` weight, plus everything else (all content is unreviewed)
+
+## Open items (need a human or a later phase)
+
+- **Capture ~50 real NatureLM outputs** (PLAN §5) — not possible while the Kaggle notebook is off. Only ONE genuine NatureLM string exists in the repo ("Laughing Kookaburra"); every other resolver test row is marked `synthetic` in `packages/ecoyard_core/test/resolver_cases.json`. Add captures as `real` rows
+- **Review all content** (`content/*.json`): written by Claude from general knowledge, never checked against USDA PLANTS / sources. Flip each file's `reviewStatus` to `reviewed` only after a person checks it
+- **Plant photos** (15): Wikimedia Commons CC0/CC-BY or USDA, store attribution, add credits screen
+- **Router token header format** for `/identify`; Kaggle notebook + HF Space audio-retention audits (needed before saying "not kept"); real iPhone + Android checks
+- Remaining content scale-up to 50 birds / 60 plants (Phase 8). White-breasted Nuthatch has only one plant link
 
 ## Decisions made
 
@@ -26,6 +41,10 @@ Append one line per decision. Never delete; supersede with a new line.
 - 2026-11-14 — v1 identification is ONLINE ONLY. Chain: (1) NatureLM via gardenear-router `/health` then `/identify`; (2) if unresponsive, BirdNET online (`ippili7-gardenear-api.hf.space/analyze`, multipart m4a); (3) neither reachable → fail honestly with a clear offline message. On-device BirdNET is deferred, not cancelled. (User decision; supersedes the on-device step in PLAN.md §0.1 for v1)
 - 2026-11-14 — Framework: Flutter for iOS and Android from one codebase. No native Swift or Kotlin feature code. Supersedes the iOS 18/Swift 6 and "not by a cross-platform framework" lines above. GardenEar is rewritten in Dart using its Swift source as the spec
 
+- 2026-11-14 — Taxon ids are eBird species codes, verified against eBird's species pages 2026-11-14 (one wrong id, `ruthum`, was caught and fixed to `rthhum` before any data was stored). Ids are persisted from Phase 4 on: never rename without a migration
+- 2026-11-14 — Resolver test cases live in `packages/ecoyard_core/test/resolver_cases.json`; `fixtures/engine_cases.json` is for the Phase 3 HabitatEngine only. (CLAUDE.md rule 6 still says "engine and resolver behaviour is pinned by fixtures/engine_cases.json": the user should reword it)
+- 2026-11-14 — `test` (dart-lang) approved by the user as a DEV dependency of packages/ecoyard_core. Earlier approvals: http, record, path_provider
+
 ## Open questions
 
 - ~~Native Swift or Flutter?~~ Resolved 2026-11-14: Flutter (spike still gates the real build)
@@ -39,9 +58,10 @@ Only the parts that exist. Add rows as they are built.
 | Module | Purpose | Status |
 | --- | --- | --- |
 | `app/` | Flutter app (iOS + Android): Home, Plants, Birds, My Plan, Settings | not created |
-| `packages/ecoyard_core` | Pure Dart, zero deps. Models, SpeciesResolver, HabitatEngine, ReferenceRepository | not created |
+| `packages/ecoyard_core` | Pure Dart, zero runtime deps (dev: `test`). Models, ReferenceRepository, content validator, SpeciesResolver done; HabitatEngine Phase 3 | Phase 2 done |
 | `packages/bird_audio` | Providers + fallback chain, recorder, BirdNET runner, SQLite, system services | not created |
-| `content/*.json` | birds, plants, bird_plant, actions, tips, taxonomy_aliases | not created |
+| `content/*.json` | birds, plants, bird_plant, actions, tips, taxonomy_aliases (all `schemaVersion` 1) | 10 birds, 15 plants, 40 links, 10 actions, 12 tips — DRAFT |
+| `scripts/validate_content.dart` | Content checks; same normalizer as the resolver; `--strict` = release gate | done |
 | `reference/GardenEar/` | Read-only Swift source of the old app. Spec to rewrite from, never built | copied (plain files) |
 | `.githooks/` + `scripts/hooks/` | pre-commit, commit-msg, pre-push checks | done |
 | `.claude/` | agents (developer, tester, reviewer, critic), guardrail hooks, settings | done |
@@ -63,6 +83,11 @@ Things that cost time once. Add to this list rather than rediscovering them.
 - Birds tab probes service health on app start (IndexedStack builds every tab), which sends two harmless GETs and wakes Render/the Space. Make it lazy if that bothers you
 - iOS Simulator tap tool and screenshots lag by a few seconds; twice the mic seemed to start without a Record tap. Could not reproduce; a widget test now pins "no Record tap, no recording"
 - Widget tests: assets load through `rootBundle` never completes in 2nd+ test under fake async. Inject loaders through `AppEnvironment` (done for Home)
+- **Resolver rules that must not be loosened:** species-level aliases only (never "chickadee", "wren", "jay"... they would turn an out-of-slice bird into one of ours); fuzzy matching only for names of 8+ chars, 1 edit under 12 chars, 2 edits above, same word count, and only when exactly one species is closest; an unresolved name is shown as the provider said it. The negative cases in `resolver_cases.json` guard this. Revisit aliases when Carolina Chickadee / House Wren etc. join the content
+- `lib/` of `ecoyard_core` imports sibling files by RELATIVE path only (no `package:`), because `scripts/validate_content.dart` has no pubspec and imports them directly. Tests may use `package:`
+- `flutter analyze` fails on info-level notices by default, so pre-push failed from Phase 0 until Phase 2. Fixed (material_ui imports, private named params). Keep analyze at zero issues
+- BirdNET labels are NOT committed (model licence). Full-label resolver test is opt-in: `BIRDNET_LABELS=/path/to/BirdNET_GLOBAL_6K_V2.4_Labels.txt dart test` in packages/ecoyard_core. Result 2026-11-14: 6,522 labels -> exactly 10 resolved (exactLabel), 11 not-a-bird, 6,501 unresolved
+- BirdNET's non-bird classes: Human vocal, Human non-vocal, Human whistle, Dog, Engine, Environmental, Fireworks, Gun, Noise, Power tools, Siren (11)
 - Xcode 27.2 + iOS 27.2 simulator runtime installed. Run on simulator without CocoaPods (works while no plugins): `cd app && flutter build ios --simulator --debug`, then `xcrun simctl install <device> build/ios/iphonesimulator/Runner.app` and `xcrun simctl launch <device> com.sridharippili.ecoyard`
 - CocoaPods 1.17.0 runs on Ruby 3.3.13 under `~/.rbenv/versions/3.3.13` (rbenv + libyaml built from source; no Homebrew). System Ruby 2.6 is too old for CocoaPods, do not use it. Before iOS builds with plugins, put it on PATH: `export PATH="$HOME/.rbenv/versions/3.3.13/bin:$PATH" LANG=en_US.UTF-8`. Android SDK still not installed (paused by choice)
 - Preview the starter in Chrome: `cd app && flutter build web && cd build/web && python3 -m http.server 8765`
@@ -73,6 +98,8 @@ Things that cost time once. Add to this list rather than rediscovering them.
 ## Changelog
 
 Newest first. One line each: date, what changed, where.
+
+- 2026-11-14 — Phase 2: content/ slice (10 birds, 15 plants, 40 links, 10 actions, 12 tips, aliases; all DRAFT, photos pending); review gate needs reviewedBy + reviewedOn; scripts/release_check.sh; ecoyard_core models + ReferenceRepository + validateContent + SpeciesResolver + shared normalizer; scripts/validate_content.dart; 145 core tests; app moved to material_ui and zero analyzer issues so pre-push passes. New dev dependency (approved): `test` in ecoyard_core. [scope] resolver not yet shown in the app (Phase 4). Critic (end of phase) found a wrong eBird code (ruthum -> rthhum, fixed and all 10 re-verified), no real review gate (added reviewedBy/reviewedOn + scripts/release_check.sh), overstated nesting links and a few tip/action wording mismatches (fixed; 2 actions added)
 
 - 2026-11-14 — Phase 1: packages/ecoyard_core (empty, pure Dart) + packages/bird_audio (ProviderChain with health cache + timeouts, NatureLM and BirdNET-online providers, recorder, parser; packages added with approval: http, record ^7.2, path_provider) + app Birds tab (controller, privacy badge without "not kept"), AppEnvironment injection. Verified live in Simulator. [scope change] no SQLite/save-sighting yet; Android and real-iPhone checks outstanding
 - 2026-11-14 — Critic (run as general-purpose stand-in; .claude/agents load only at session start) reviewed Phase 1: adopted noDetection-is-final, null NatureLM confidence, timeouts, probe never blocks Record, no "not kept" until audits, HTTP tests, m4a + 10 s cap, mic Info.plist string

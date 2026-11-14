@@ -1,9 +1,13 @@
-/// EcoYard's pure-Dart core.
+/// EcoYard's pure-Dart core: content models, the species resolver and the
+/// content validator.
 ///
-/// Deliberately empty for now. Models, SpeciesResolver, HabitatEngine and
-/// ReferenceRepository arrive in Phases 2-3. This package must stay free of
-/// Flutter, plugins and `dart:io`; the pre-commit hook enforces that.
+/// Must stay free of Flutter, plugins and `dart:io` in `lib/`; the pre-commit
+/// hook enforces that. Files in `lib/src` import each other by relative path
+/// only, so plain scripts (`scripts/validate_content.dart`) can use them.
 library;
 
-/// Placeholder so the package has a public entry point.
-const String ecoyardCoreVersion = '0.0.1';
+export 'src/content_validator.dart';
+export 'src/models.dart';
+export 'src/normalize.dart' show normalizeName;
+export 'src/reference_repository.dart';
+export 'src/species_resolver.dart';

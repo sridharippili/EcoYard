@@ -71,7 +71,8 @@ phase: on the plan at phase start, and on the result at phase end.
 - Git hooks in `.githooks/` (enable once with `scripts/setup.sh`):
   - pre-commit: secrets, model files / files over 5 MB, `reference/` lock, ecoyard_core purity, `dart format` + `dart analyze`, content JSON validation, false privacy copy.
   - commit-msg: message quality; `[fixtures]` tag required when fixtures change.
-  - pre-push: analyze + test every package.
+  - pre-push: analyze + test every package, and `dart run scripts/validate_content.dart`.
+  - Before any public build: `dart run scripts/validate_content.dart --strict` must pass (content reviewed by a person, real plant photos).
 - Claude hooks in `.claude/hooks/` block: edits to `reference/`, `fixtures/` and
   guardrail files; `--no-verify`; force-push; `reset --hard`; broad `rm -rf`;
   reading credential files. After each Dart edit, `dart analyze` runs and

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "reviewStatus": "draft",
+  "region": "us-ne",
+  "sources": [
+    "Cornell Lab of Ornithology (Project FeederWatch, Christmas Bird Count, bird-friendly practices)",
+    "Xerces Society (spring cleanup timing)"
+  ],
+  "note": "One tip per month. The tip for today's month is shown on Home.",
+  "tips": [
+    { "id": "tip-jan", "months": [1], "text": "Fresh water is hard to find when everything freezes. Refill a shallow dish with lukewarm water each morning.", "relatedActionIds": ["add-water-source"] },
+    { "id": "tip-feb", "months": [2], "text": "Leave seed heads and berries standing. They are winter food, and cutting them back can wait.", "relatedActionIds": ["leave-seed-heads"] },
+    { "id": "tip-mar", "months": [3], "text": "Wait to clean up leaves and stems until daytime highs stay around 50 degrees. Insects are still sleeping in them.", "relatedActionIds": ["keep-leaf-cover"] },
+    { "id": "tip-apr", "months": [4], "text": "Spring is a good time to plant a native shrub. Its roots settle in before the summer heat.", "relatedActionIds": ["plant-native-shrub"] },
+    { "id": "tip-may", "months": [5], "text": "Many birds are nesting in shrubs and hedges right now. Hold off on heavy trimming until late summer.", "relatedActionIds": [] },
+    { "id": "tip-jun", "months": [6], "text": "A fledgling hopping on the ground is usually fine. Its parents are close by. Keep pets away and leave it alone.", "relatedActionIds": [] },
+    { "id": "tip-jul", "months": [7], "text": "In hot weather, refresh the birdbath daily so the water stays cool and clean.", "relatedActionIds": ["clean-birdbath", "add-water-source"] },
+    { "id": "tip-aug", "months": [8], "text": "Let coneflowers and black-eyed Susans go to seed. Goldfinches nest late and feed on them.", "relatedActionIds": ["leave-seed-heads"] },
+    { "id": "tip-sep", "months": [9], "text": "Fall migration is underway. Turn off extra outdoor lights at night, and mark large windows.", "relatedActionIds": ["mark-windows"] },
+    { "id": "tip-oct", "months": [10], "text": "Leave this fall's leaves under your shrubs. Insects shelter there, and birds feed on them in spring. Free.", "relatedActionIds": ["keep-leaf-cover"] },
+    { "id": "tip-nov", "months": [11], "text": "Cool weather is a good time to plant trees and shrubs. A brush pile gives small birds cover this winter.", "relatedActionIds": ["plant-native-shrub", "build-brush-pile"] },
+    { "id": "tip-dec", "months": [12], "text": "Count the birds in your yard. Project FeederWatch and the Christmas Bird Count both welcome backyard watchers.", "relatedActionIds": [] }
+  ]
+}
