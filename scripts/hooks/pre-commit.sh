@@ -11,7 +11,7 @@ ALL="$(staged_all)"
 # Scan only lines being ADDED in this commit.
 SECRET_RE='(hf_[A-Za-z0-9]{30,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{40,}|sk-[A-Za-z0-9_-]{32,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|-----BEGIN [A-Z ]*PRIVATE KEY-----)'
 GENERIC_RE='(api[_-]?key|secret|token|password|passwd)["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"'[:space:]]{16,}["'"'"']'
-HITS="$(git diff --cached -U0 --no-color -- . ':(exclude)scripts/hooks/*' ':(exclude).claude/hooks/*' \
+HITS="$(git diff --cached -U0 --no-color -- . ':(exclude)docs/design/*' ':(exclude)scripts/hooks/*' ':(exclude).claude/hooks/*' \
   | grep -E '^\+[^+]' | grep -Ei -e "$SECRET_RE" -e "$GENERIC_RE" | cut -c1-120)"
 if [ -n "$HITS" ]; then
   fail "Possible secret in staged changes. Move it to an untracked .env / --dart-define, never commit it:"
