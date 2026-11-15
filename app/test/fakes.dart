@@ -96,14 +96,41 @@ AppEnvironment fakeEnv({
   PlanStore? store,
   Future<AppContent> Function()? loadContent,
   Future<PlanStore> Function()? openPlanStore,
+  AppStorage? storage,
+  Future<AppStorage> Function()? openStorage,
+  AudioCache? audioCache,
+  bool onboarded = true,
   DateTime Function()? now,
 }) => AppEnvironment(
   chain: ProviderChain(providers ?? [FakeProvider('naturelm')]),
   newRecorder: () => recorder ?? FakeRecorder(),
   loadContent: loadContent ?? () async => realAppContent(),
-  openPlanStore: openPlanStore ?? () async => store ?? InMemoryPlanStore(),
+  openStorage:
+      openStorage ??
+      () async =>
+          storage ??
+          InMemoryAppStorage(
+            plans: openPlanStore != null
+                ? await openPlanStore()
+                : (store ?? InMemoryPlanStore()),
+            settings: InMemorySettingsStore({
+              if (onboarded) AppSettings.keyOnboarded: 'true',
+            }),
+          ),
+  audioCache: audioCache ?? FakeAudioCache(),
   now: now ?? fixedNow,
 );
+
+/// Counts sweeps and does no file I/O (real I/O never completes under the
+/// widget tests' fake clock).
+class FakeAudioCache implements AudioCache {
+  int sweeps = 0;
+  @override
+  Future<int> sweep() async {
+    sweeps++;
+    return 0;
+  }
+}
 
 /// Pumps the whole app with [env] and lets it settle.
 Future<void> pumpApp(WidgetTester tester, AppEnvironment env) async {

@@ -1,6 +1,7 @@
 import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'app_database.dart';
 import 'migrations.dart';
 import 'plan_store.dart';
 
@@ -10,48 +11,28 @@ import 'plan_store.dart';
 /// and the screen says so. Nothing here ever deletes or recreates the file to
 /// "recover": an empty plan after an error would look like lost data.
 class SqflitePlanStore implements PlanStore {
-  SqflitePlanStore._(this._db);
+  /// [ownsDatabase]: whether [close] closes the database. False when the
+  /// database is shared with other stores (see `SqliteAppStorage`).
+  SqflitePlanStore.shared(this._db, {this.ownsDatabase = false});
 
   static const String fileName = 'ecoyard.db';
 
   final Database _db;
+  final bool ownsDatabase;
 
-  /// Opens (and migrates) the database. [path] defaults to the app's
-  /// databases folder; tests pass a temp file and a ffi [factory].
+  /// Opens (and migrates) the database for this store alone. Used by tests
+  /// and by anything that only needs the plan.
   static Future<SqflitePlanStore> open({
     String? path,
     DatabaseFactory? factory,
     List<List<String>> migrations = planMigrations,
   }) async {
-    final f = factory ?? databaseFactory;
-    final dbPath = path ?? '${await f.getDatabasesPath()}/$fileName';
-    final db = await f.openDatabase(
-      dbPath,
-      options: OpenDatabaseOptions(
-        version: migrations.length,
-        onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
-        onCreate: (db, version) => _migrate(db, 0, version, migrations),
-        onUpgrade: (db, from, to) => _migrate(db, from, to, migrations),
-        onDowngrade: (db, from, to) => throw StateError(
-          'The saved plan was written by a newer version of EcoYard '
-          '(database v$from, this app understands v$to).',
-        ),
-      ),
+    final db = await openAppDatabase(
+      path: path,
+      factory: factory,
+      migrations: migrations,
     );
-    return SqflitePlanStore._(db);
-  }
-
-  static Future<void> _migrate(
-    Database db,
-    int from,
-    int to,
-    List<List<String>> migrations,
-  ) async {
-    for (var v = from; v < to; v++) {
-      for (final sql in migrations[v]) {
-        await db.execute(sql);
-      }
-    }
+    return SqflitePlanStore.shared(db, ownsDatabase: true);
   }
 
   @override
@@ -152,5 +133,7 @@ class SqflitePlanStore implements PlanStore {
   }
 
   @override
-  Future<void> close() => _db.close();
+  Future<void> close() async {
+    if (ownsDatabase) await _db.close();
+  }
 }

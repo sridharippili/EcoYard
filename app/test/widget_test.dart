@@ -14,7 +14,7 @@ void main() {
 
     await tester.tap(find.text('Settings').last);
     await tester.pumpAndSettle();
-    expect(find.textContaining('Phase 6'), findsOneWidget);
+    expect(find.text('Privacy & Settings'), findsOneWidget);
   });
 
   testWidgets('Birds tab: record, stop, see the species and who answered', (
@@ -67,7 +67,8 @@ void main() {
     }
 
     expect(recorder.startCalls, 0, reason: 'no tap on Record, no recording');
-    expect(find.textContaining('Recording'), findsNothing);
+    expect(find.textContaining('Recording 0s'), findsNothing);
+    expect(find.textContaining('Tap to stop'), findsNothing);
   });
 
   testWidgets('Birds tab: both services down -> honest offline message', (

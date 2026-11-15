@@ -7,9 +7,9 @@ The working memory for this repo. Keep it short. If this file passes
 
 ## Current state
 
-- **Phase:** 5 — Plant Finder + Home built, tested and committed; Phases 1-4 committed, engine fixtures promoted
-- **Status:** Plants tab lists/ranks all plants by space, sun, budget (pure `PlantFinder` in ecoyard_core), with a free first step, plant cards and a plant detail screen. Home shows the real monthly tip (`tips.json`) and three tiles; the fake weather card and sample JSON are gone. My Plan links to the Plants tab for plant-related actions. Verified in the iOS Simulator
-- **Build:** app 153 + ecoyard_core 217 (+1 opt-in skipped) + bird_audio 102 tests, analyzers clean
+- **Phase:** 6 — Privacy & Settings built, tested and committed; Phases 1-5 committed. Next planned: Phase 7 (weather, notifications, polish). User asked (after Phase 6) for an offline-model download in Settings: see Open items, it reverses the v1 online-only decision and needs approval
+- **Status:** Settings tab: saved defaults (space/sun/budget), privacy facts, Manage my data (real counts, copy as JSON), Delete my data (one transaction, VACUUM, returns to first launch), draft privacy policy, About (sources from content), 3-screen onboarding. Tab bar is a floating frosted-glass pill (`GlassNavBar`). Verified in the iOS Simulator (real v1->v2 DB migration, real erase)
+- **Build:** app 229 + ecoyard_core 235 (+1 opt-in skipped) + bird_audio 131 tests, analyzers clean
 - **Release gate:** `scripts/release_check.sh` fails until every content file is `reviewed` with `reviewedBy`/`reviewedOn` and every plant has a real photo. It is NOT wired into CI/hooks (guarded files): the user should add it to the release workflow
 - **Setup after clone:** `scripts/setup.sh` (enables `.githooks/`)
 
@@ -24,6 +24,15 @@ The working memory for this repo. Keep it short. If this file passes
 - A need blocked only by budget has `moreBudgetActionIds` ("a small budget would unlock..."); one blocked by season has `laterActionIds`. Use them instead of "nothing can help"
 - A plant is never linked for `nesting` unless it gives nesting cover soon after planting (shrubs, vines), never trees
 - Content rows a person must check before release: tip-mar timing wording, `norcar`/`northern-spicebush`, `carwre`/`white-oak` weight, plus everything (all content is unreviewed)
+
+## Known gaps from Phase 6
+
+- **Deviations from spec 4.5 / 6.x (deliberate):** no toggles for approximate location, progress data or research sharing (each would control nothing: no location use, plan is always saved, no sharing exists); no in-app microphone toggle (opening iOS Settings needs a plugin; the text points to iPhone Settings); export is "Copy my data" to the clipboard, not a share sheet (needs a package); About has no photo credits yet; "21 bird names" counts are plan actions/birds (there is no sightings journal)
+- Footer "No ads. No analytics in the app. We don't sell your data." and the privacy policy are DRAFT wording: the owner (and ideally a lawyer) must confirm them; the draft labels follow `repo.reviewStatus`
+- `Documents/ecoyard.db` can be in iCloud backups; "Delete my data" cannot erase older backups (the dialog and policy say what it does not erase). Audio sent to NatureLM/BirdNET is outside the app: never claim it is deleted or "not kept" until both are audited
+- A VACUUM failure after a committed erase is ignored (best effort); no test forces it
+- `Shell` does not close a storage open that is still in flight at dispose (harmless)
+- Glass tab bar: lists scroll behind it; every tab list uses `tabListPadding(context)` (adds `MediaQuery.padding.bottom`). A new tab screen must do the same or its last item hides behind the bar
 
 ## Known gaps from Phase 5
 
@@ -50,6 +59,7 @@ The working memory for this repo. Keep it short. If this file passes
 
 - **Promote the engine fixtures:** read `packages/ecoyard_core/test/engine_cases.draft.json` (especially the `why` of c02, c11, c19), then run the promote commands in docs/ENGINE_SPEC.md. Until then the engine is pinned only by a draft I wrote
 
+- **Offline model download in Settings (user request, 2026-11-14):** GardenEar had a "Download for offline use" card (BirdNET TFLite, ~50 MB). EcoYard v1 is deliberately online-only (Decisions); on-device BirdNET was parked and the spike never proved top-1 accuracy, <2 s inference or real-device mic. Building it = a new phase: `tflite_flutter` (+ maybe `archive`) need approval, a model source (GardenEar's GitHub URL 404s; official is Zenodo 77 MB zip), download manager with progress/failure states, labels, 144000-sample inference, the chain gets an offline first step, honest "offline mode" copy, and Delete my data must also remove the model. No placeholder card until decided
 - **Capture ~50 real NatureLM outputs** (PLAN §5) — not possible while the Kaggle notebook is off. Only ONE genuine NatureLM string exists in the repo ("Laughing Kookaburra"); every other resolver test row is marked `synthetic` in `packages/ecoyard_core/test/resolver_cases.json`. Add captures as `real` rows
 - **Review all content** (`content/*.json`): written by Claude from general knowledge, never checked against USDA PLANTS / sources. Flip each file's `reviewStatus` to `reviewed` only after a person checks it
 - **Plant photos** (15): Wikimedia Commons CC0/CC-BY or USDA, store attribution, add credits screen
@@ -80,6 +90,8 @@ Append one line per decision. Never delete; supersede with a new line.
 - 2026-11-14 — Stored timestamps are UTC ISO-8601 with exactly 3 fractional digits (`stampFor`), one millisecond apart per action in a single add, so text order = time order. The plan view compares parsed times anyway
 - 2026-11-14 — Confidence tiers on screen: high/medium resolved -> advice; low resolved -> "couldn't identify"; unresolved bird -> general advice only if provider score is null or >= 0.4, else "couldn't identify"; non-bird -> "something other than a bird"
 - 2026-11-14 — Phase 5: Plant Finder logic is a pure `PlantFinder` in ecoyard_core (all plants, ranking by summed link weight then cost then id, hidden count), not the engine's generic mode. Shell owns one `PlantFinderController`: the Plants tab button keeps the user's filters; "Find Native Plants" and My Plan's link reset to defaults; "Small Space" sets Balcony. Home = greeting, Identify, 3 tiles, month tip
+- 2026-11-14 — Phase 6: one shared SQLite file for plan + settings (`AppStorage`, migration 2 = settings table; migration 1 untouched). Defaults only seed the Plants filters and a NEW bird result; presets (Small Space = Balcony) override for that visit and never write back; an untouched Plants tab follows a changed default, a touched one keeps its choice. Delete my data = plan + settings in one transaction + VACUUM + leftover-recording sweep, and returns the app to first launch (introduction shows again). Saves are serialised; a save after a failed load re-reads first and never writes defaults over unreadable stored values
+- 2026-11-14 — UI: bottom tab bar is a floating frosted-glass pill (`GlassNavBar`, BackdropFilter, no new package). GardenEar's tab bar was opaque, so this is new, per the user's request
 
 ## Open questions
 
@@ -93,9 +105,9 @@ Only the parts that exist. Add rows as they are built.
 
 | Module | Purpose | Status |
 | --- | --- | --- |
-| `app/` | Flutter app (iOS + Android): Home, Plants (+ detail), Birds (+ advice panel), My Plan, Settings | all built except Settings (placeholder) |
+| `app/` | Flutter app (iOS + Android): Home, Plants (+ detail), Birds (+ advice panel), My Plan, Settings (+ onboarding), glass tab bar | all five tabs built |
 | `packages/ecoyard_core` | Pure Dart, zero runtime deps (dev: `test`). Models, ReferenceRepository, content validator, SpeciesResolver, HabitatEngine, plan view, PlantFinder | Phases 2-5 done |
-| `packages/bird_audio` | Providers + fallback chain, recorder, plan store (SQLite + numbered migrations) | Phase 1 + 4 done |
+| `packages/bird_audio` | Providers + fallback chain, recorder, AppStorage (plan + settings, SQLite + numbered migrations), audio sweep | Phases 1, 4, 6 done |
 | `content/*.json` | birds, plants, bird_plant, actions, tips, taxonomy_aliases (all `schemaVersion` 1) | 10 birds, 15 plants, 40 links, 10 actions (priority + optional forBirdIds), 12 tips — DRAFT |
 | `scripts/validate_content.dart` | Content checks; same normalizer as the resolver; `--strict` = release gate | done |
 | `scripts/recommend.dart` | Prints a recommendation from a bird name (resolver + engine) | done |
@@ -143,6 +155,7 @@ Things that cost time once. Add to this list rather than rediscovering them.
 
 Newest first. One line each: date, what changed, where.
 
+- 2026-11-14 — Phase 6: AppSettings/DataSummary/exportMyData (core), migration 2 + AppStorage/SettingsStore/AudioCache (bird_audio), Settings screen + Manage/Delete/Policy/About + onboarding + SettingsController (app), `FileMeta.sources`. Critic (start): delete wording, atomic wipe, v1->v2 test first, defaults vs presets, onboarding scope (all done). Reviewer: VACUUM best-effort, onboarding save failure dead end, serialised saves, no default-overwrite after failed load, sweep after first frame (all done). Found by tests: setState-with-Future in Manage retry, hung-DB spinner (5 s timeout). Glass tab bar added at the user's request. Mutation-checked (14 caught, 1 dead-code removed). Spec deviations in Known gaps from Phase 6
 - 2026-11-14 — Phase 5: pure `PlantFinder` (+15 tests, counts cross-checked against the JSON), `PlantFinderController`, Plants tab + Plant Detail, Home with the real monthly tip (weather card, sample JSON and Water-Saving tile removed), My Plan "See native plants" link. Critic (start): engine generic mode drops unlinked plants (own finder), free-only empty state, native/draft wording from data, preset rules, dead-end detail (all done). Reviewer: draft wording from all files, tip draft marker, label wrap at 2x text, explicit checkmarks (done). Found by tests: Home tile row infinite height, header + photo placeholder overflow at 2x. Mutation-checked (6 caught, 1 equivalent). [scope] items in Known gaps from Phase 5 deferred
 - 2026-11-14 — App icon: revised artwork (softer tail, darker leaf, visible circle, legs, sound arcs; inside the Android safe zone) in `docs/design/app_icon.svg` + `app_icon_1024.png` (opaque, no alpha), installed in `app/ios/Runner/Assets.xcassets/AppIcon.appiconset` (all sizes via `sips`). Android adaptive icon (foreground + background) not made yet; no package added
 - 2026-11-14 — Phase 4: plan domain (core `plan.dart`), SQLite `PlanStore` + migrations (bird_audio, new packages sqflite / sqflite_common_ffi approved), content bundled as assets with drift test, content/DB failure states, BirdDetailsPanel under the Birds result, My Plan screen. Critic (start): required snapshot rows, add semantics, no false copy, failure states (all done). Reviewer: dark-mode legibility, controller dispose/double-init, same timestamp per add, non-atomic load, missing drift test (all fixed). Edge-case pass found and fixed: ISO text-sort bug, `add`/`load` threw synchronously on a closed store, same action twice in one add, no-actions state showing a dead button, double-tap, Try again/Done row overflow at 2x text. Mutation-checked (12 mutations caught). [scope] reminders/photo/call player/journal deferred; Home overflow at 320px left

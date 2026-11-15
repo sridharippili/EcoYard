@@ -1,6 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_environment.dart';
+
+import 'package:ecoyard_core/ecoyard_core.dart' show AppSettings;
+
 import '../../app/content.dart';
 import '../../app/theme.dart';
 import '../plan/plan_controller.dart';
@@ -14,12 +17,16 @@ class BirdsScreen extends StatefulWidget {
     required this.env,
     required this.content,
     required this.plan,
+    required this.settings,
     required this.onOpenPlan,
   });
 
   final AppEnvironment env;
   final AppContent content;
   final PlanController plan;
+
+  /// The user's starting choices for the advice (read when a result appears).
+  final AppSettings Function() settings;
 
   /// Switches to the My Plan tab.
   final VoidCallback onOpenPlan;
@@ -51,7 +58,7 @@ class _BirdsScreenState extends State<BirdsScreen> {
     return ListenableBuilder(
       listenable: _c,
       builder: (context, _) => ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        padding: tabListPadding(context),
         children: [
           Text(
             'Identify a Bird',
@@ -86,6 +93,7 @@ class _BirdsScreenState extends State<BirdsScreen> {
                 detection: _c.outcome!.result.top,
                 content: widget.content,
                 plan: widget.plan,
+                settings: widget.settings(),
                 now: widget.env.now,
                 onOpenPlan: () {
                   _c.dismiss();

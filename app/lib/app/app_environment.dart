@@ -9,7 +9,8 @@ class AppEnvironment {
     required this.chain,
     required this.newRecorder,
     required this.loadContent,
-    required this.openPlanStore,
+    required this.openStorage,
+    required this.audioCache,
     this.now = DateTime.now,
   });
 
@@ -19,7 +20,8 @@ class AppEnvironment {
     chain: standardOnlineChain(),
     newRecorder: RecordPackageRecorder.new,
     loadContent: loadBundledContent,
-    openPlanStore: SqflitePlanStore.open,
+    openStorage: SqliteAppStorage.open,
+    audioCache: AudioCache(),
   );
 
   final ProviderChain chain;
@@ -30,8 +32,12 @@ class AppEnvironment {
   /// Loads the reference content. May throw; the app shows a retry screen.
   final Future<AppContent> Function() loadContent;
 
-  /// Opens the plan database. May throw; the My Plan tab then says so.
-  final Future<PlanStore> Function() openPlanStore;
+  /// Opens the app database (plan + settings). May throw; the My Plan and
+  /// Settings tabs then say so.
+  final Future<AppStorage> Function() openStorage;
+
+  /// Removes recordings left behind by a crash. Never throws.
+  final AudioCache audioCache;
 
   /// The clock. Used for the month (advice) and for plan timestamps.
   final DateTime Function() now;

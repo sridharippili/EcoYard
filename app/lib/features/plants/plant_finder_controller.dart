@@ -12,23 +12,31 @@ import '../../app/content.dart';
 /// starts on Balcony. Each is an explicit action, so a preset never sticks
 /// by accident.
 class PlantFinderController extends ChangeNotifier {
-  PlantFinderController({required AppContent content, required this.now})
-    : _content = content,
-      _finder = PlantFinder(content.repo) {
+  PlantFinderController({
+    required AppContent content,
+    required this.now,
+    required this._settings,
+  }) : _content = content,
+       _finder = PlantFinder(content.repo) {
+    final d = _settings();
+    space = d.defaultSpace;
+    sun = d.defaultSun;
+    budget = d.defaultBudget;
     _recompute();
   }
 
-  static const defaultSpace = SpaceType.yard;
-  static const defaultSun = SunExposure.full;
-  static const defaultBudget = BudgetTier.any;
+  final AppSettings Function() _settings;
+
+  /// True once the user has changed a filter on this screen.
+  bool touched = false;
 
   final AppContent _content;
   final PlantFinder _finder;
   final DateTime Function() now;
 
-  SpaceType space = defaultSpace;
-  SunExposure sun = defaultSun;
-  BudgetTier budget = defaultBudget;
+  late SpaceType space;
+  late SunExposure sun;
+  late BudgetTier budget;
 
   late PlantFinderResult result;
 
@@ -36,22 +44,43 @@ class PlantFinderController extends ChangeNotifier {
   /// season. The only part of the screen that depends on the date.
   HabitatAction? freeFirstStep;
 
-  void setSpace(SpaceType v) => _set(() => space = v);
-  void setSun(SunExposure v) => _set(() => sun = v);
-  void setBudget(BudgetTier v) => _set(() => budget = v);
-
-  /// "Find Native Plants": back to the starting choices.
-  void showDefaults() => _set(() {
-    space = defaultSpace;
-    sun = defaultSun;
-    budget = defaultBudget;
+  void setSpace(SpaceType v) => _set(() {
+    touched = true;
+    space = v;
+  });
+  void setSun(SunExposure v) => _set(() {
+    touched = true;
+    sun = v;
+  });
+  void setBudget(BudgetTier v) => _set(() {
+    touched = true;
+    budget = v;
   });
 
-  /// "Small Space": balcony, everything else back to the defaults.
+  /// Settings finished loading after this screen was built: adopt them, but
+  /// only if the user has not already picked something here.
+  void adoptDefaultsIfUntouched() {
+    if (!touched) showDefaults();
+  }
+
+  /// "Find Native Plants", My Plan's link, and saving new defaults: back to
+  /// the user's own starting choices (Settings).
+  void showDefaults() => _set(() {
+    final d = _settings();
+    touched = false;
+    space = d.defaultSpace;
+    sun = d.defaultSun;
+    budget = d.defaultBudget;
+  });
+
+  /// "Small Space": balcony for this visit only (never saved), everything
+  /// else from the user's defaults.
   void showSmallSpace() => _set(() {
+    final d = _settings();
+    touched = false;
     space = SpaceType.balcony;
-    sun = defaultSun;
-    budget = defaultBudget;
+    sun = d.defaultSun;
+    budget = d.defaultBudget;
   });
 
   void _set(VoidCallback change) {

@@ -7,11 +7,18 @@ import 'fakes.dart';
 void main() {
   final content = realAppContent();
   DateTime clock = DateTime.utc(2026, 11, 10);
+  AppSettings settings = AppSettings.initial;
 
-  PlantFinderController make() =>
-      PlantFinderController(content: content, now: () => clock);
+  PlantFinderController make() => PlantFinderController(
+    content: content,
+    now: () => clock,
+    settings: () => settings,
+  );
 
-  setUp(() => clock = DateTime.utc(2026, 11, 10));
+  setUp(() {
+    clock = DateTime.utc(2026, 11, 10);
+    settings = AppSettings.initial;
+  });
 
   test('starts on yard / full sun / any budget and lists plants', () {
     final c = make();

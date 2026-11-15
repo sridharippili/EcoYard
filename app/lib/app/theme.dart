@@ -34,3 +34,9 @@ ThemeData ecoTheme(Brightness brightness) {
     ),
   );
 }
+
+/// Padding for the scrolling lists of the five tabs. The bottom tab bar is a
+/// floating glass pill and lists scroll behind it, so the bottom padding must
+/// include the space it covers (`MediaQuery` reports it as `padding.bottom`).
+EdgeInsets tabListPadding(BuildContext context) =>
+    EdgeInsets.fromLTRB(16, 12, 16, 24 + MediaQuery.paddingOf(context).bottom);

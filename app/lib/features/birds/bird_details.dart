@@ -27,6 +27,7 @@ class BirdDetailsPanel extends StatefulWidget {
     required this.detection,
     required this.content,
     required this.plan,
+    required this.settings,
     required this.now,
     required this.onOpenPlan,
   });
@@ -34,6 +35,9 @@ class BirdDetailsPanel extends StatefulWidget {
   final Detection detection;
   final AppContent content;
   final PlanController plan;
+
+  /// Starting choices, taken when this panel is created.
+  final AppSettings settings;
   final DateTime Function() now;
 
   /// Switches to the My Plan tab.
@@ -45,9 +49,12 @@ class BirdDetailsPanel extends StatefulWidget {
 
 class _BirdDetailsPanelState extends State<BirdDetailsPanel> {
   // Session-only answers. They are not saved anywhere (Settings, Phase 6).
-  SpaceType _space = SpaceType.yard;
-  SunExposure _sun = SunExposure.partial;
-  BudgetTier _budget = BudgetTier.low;
+  late SpaceType _space = widget.settings.defaultSpace;
+  late SunExposure _sun = widget.settings.defaultSun;
+  // The advice offers Free only / Free + low cost; "Any" means the latter.
+  late BudgetTier _budget = widget.settings.defaultBudget == BudgetTier.free
+      ? BudgetTier.free
+      : BudgetTier.low;
 
   // The panel is rebuilt with a new key for each new answer, so this never
   // goes stale.

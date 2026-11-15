@@ -34,6 +34,7 @@ class FileMeta {
     required this.region,
     this.reviewedBy,
     this.reviewedOn,
+    this.sources = const [],
   });
 
   final String file;
@@ -45,6 +46,9 @@ class FileMeta {
   /// is `reviewed`, so nobody can flip the flag without leaving a name.
   final String? reviewedBy;
   final String? reviewedOn;
+
+  /// Where the content came from, as written in the file's `sources` list.
+  final List<String> sources;
 }
 
 class ReferenceRepository {
@@ -134,6 +138,11 @@ class ReferenceRepository {
     return null;
   }
 
+  /// Every distinct source named in the content files, in first-seen order.
+  List<String> get allSources => {
+        for (final m in meta.values) ...m.sources,
+      }.toList();
+
   /// `draft` if any file is still a draft, otherwise `reviewed`.
   ReviewStatus get reviewStatus => meta.values.any(
         (m) => m.reviewStatus == ReviewStatus.draft,
@@ -175,6 +184,11 @@ FileMeta _meta(String file, Map<String, dynamic> root) => FileMeta(
       region: _string(root, 'region', file, 'file'),
       reviewedBy: _optString(root, 'reviewedBy'),
       reviewedOn: _optString(root, 'reviewedOn'),
+      sources: [
+        if (root['sources'] is List)
+          for (final x in root['sources'] as List)
+            if (x is String && x.trim().isNotEmpty) x,
+      ],
     );
 
 List<T> _list<T>(

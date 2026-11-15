@@ -30,7 +30,7 @@ class HomeScreen extends StatelessWidget {
     // tip card, not a made-up one.
     final tip = content.repo.tipForMonth(now().month);
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      padding: tabListPadding(context),
       children: [
         const _Header(),
         const SizedBox(height: 16),

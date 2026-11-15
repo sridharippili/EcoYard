@@ -368,7 +368,7 @@ BEGIN SELECT RAISE(ABORT, 'trap'); END''');
       await s.close();
     });
 
-    test('migration v1 -> v2 keeps the saved plan', () async {
+    test('a further migration appended later keeps the saved plan', () async {
       final path = dbPath();
       var s =
           await SqflitePlanStore.open(path: path, factory: databaseFactoryFfi);
@@ -388,7 +388,50 @@ BEGIN SELECT RAISE(ABORT, 'trap'); END''');
       await s.close();
 
       final raw = await databaseFactoryFfi.openDatabase(path);
+      expect(await raw.getVersion(), planMigrations.length + 1);
+      await raw.close();
+    });
+
+    test(
+        'a real v1 plan database migrates to the settings schema (v2) and '
+        'keeps every row', () async {
+      final path = dbPath();
+      // Exactly what shipped in Phase 4: only the first migration.
+      var s = await SqflitePlanStore.open(
+        path: path,
+        factory: databaseFactoryFfi,
+        migrations: [planMigrations.first],
+      );
+      await s.add(
+        birdId: 'norcar',
+        actions: [cand('a1'), cand('a2')],
+        now: t0,
+      );
+      await s.setDone('a1', done: true, now: t1);
+      await s.add(birdId: 'amegfi', actions: [cand('a1')], now: t2);
+      await s.close();
+
+      var raw = await databaseFactoryFfi.openDatabase(path);
+      expect(await raw.getVersion(), 1);
+      await raw.close();
+
+      s = await SqflitePlanStore.open(path: path, factory: databaseFactoryFfi);
+      final all = await s.load();
+      expect(all.map((e) => e.actionId).toSet(), {'a1', 'a2'});
+      final a1 = all.singleWhere((e) => e.actionId == 'a1');
+      expect(a1.birdIds, ['norcar', 'amegfi']);
+      expect(a1.isDone, isTrue);
+      await s.close();
+
+      raw = await databaseFactoryFfi.openDatabase(path);
       expect(await raw.getVersion(), 2);
+      final tables = (await raw.rawQuery(
+        "select name from sqlite_master where type='table'",
+      ))
+          .map((r) => r['name'])
+          .toSet();
+      expect(tables,
+          containsAll(['plan_actions', 'plan_action_birds', 'settings']));
       await raw.close();
     });
 

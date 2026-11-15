@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 
 import 'app/app_environment.dart';
@@ -5,7 +7,15 @@ import 'app/content.dart';
 import 'app/shell.dart';
 import 'app/theme.dart';
 
-void main() => runApp(EcoYardApp(env: AppEnvironment.live()));
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final env = AppEnvironment.live();
+  runApp(EcoYardApp(env: env));
+  // Remove a recording a crash may have left behind. Started right away,
+  // before the user can reach Record, so it cannot touch one in progress;
+  // it never throws and does not delay the first frame.
+  unawaited(env.audioCache.sweep());
+}
 
 class EcoYardApp extends StatelessWidget {
   const EcoYardApp({super.key, required this.env});

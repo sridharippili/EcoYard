@@ -6,6 +6,7 @@
 /// only, so plain scripts (`scripts/validate_content.dart`) can use them.
 library;
 
+export 'src/app_settings.dart';
 export 'src/content_validator.dart';
 export 'src/habitat_engine.dart';
 export 'src/models.dart';

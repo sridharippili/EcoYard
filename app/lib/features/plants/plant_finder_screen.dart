@@ -1,6 +1,8 @@
 import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../app/theme.dart';
+
 import '../../app/content.dart';
 import 'plant_detail_screen.dart';
 import 'plant_finder_controller.dart';
@@ -27,7 +29,7 @@ class PlantFinderScreen extends StatelessWidget {
         final repo = content.repo;
         final draft = content.isDraft;
         return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: tabListPadding(context),
           children: [
             Text(
               'Native Plants',

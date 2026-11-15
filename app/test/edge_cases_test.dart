@@ -384,12 +384,18 @@ void main() {
           ),
         ),
       );
+      // While the settings load there is a brief spinner; a hung database
+      // must not keep the app on it for ever: after 5 s the app opens.
       await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('Hi there!'), findsNothing);
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pump();
+      expect(find.text('Hi there!'), findsOneWidget);
       await tester.tap(find.text('My Plan').last);
       await tester.pump();
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      // The Birds tab still works, and a save that cannot open the database
-      // does not hang the screen forever on a spinner it never shows.
+      // The Birds tab still works.
       await tester.tap(find.text('Birds').last);
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('Tap to record'), findsOneWidget);
