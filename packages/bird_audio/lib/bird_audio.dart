@@ -6,6 +6,7 @@ export 'src/http_support.dart' show MultipartBody, buildAudioMultipart;
 export 'src/identification.dart';
 export 'src/naturelm_provider.dart';
 export 'src/offline/birdnet_pipeline.dart';
+export 'src/offline/local_provider.dart';
 export 'src/offline/model_download.dart';
 export 'src/offline/model_runner.dart';
 export 'src/offline/wav.dart';

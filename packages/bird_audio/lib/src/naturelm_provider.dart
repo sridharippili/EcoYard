@@ -34,6 +34,12 @@ class NatureLmProvider implements IdentificationProvider {
   @override
   String get label => 'NatureLM';
 
+  @override
+  bool get sendsAudioOffDevice => true;
+
+  @override
+  bool get noDetectionIsFinal => true;
+
   /// The router is up AND at least one backend (the Kaggle notebook) is
   /// registered. `active_providers: []` means "not running".
   @override
@@ -92,6 +98,7 @@ class NatureLmProvider implements IdentificationProvider {
 
     return IdentificationResult(
       providerId: id,
+      sentAudioOffDevice: true,
       providerLabel: label,
       detections: detections,
       rawResponse: res.body,

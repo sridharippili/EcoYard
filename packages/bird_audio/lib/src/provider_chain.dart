@@ -8,6 +8,13 @@ class ChainOutcome {
 
   /// Providers that were tried (or skipped) before one answered.
   final List<ProviderFailure> failuresBefore;
+
+  /// True when the recording was uploaded during THIS identification: either
+  /// the provider that answered uploads, or an earlier one did before failing.
+  /// The privacy badge must use this and nothing else.
+  bool get audioLeftDevice =>
+      result.sentAudioOffDevice ||
+      failuresBefore.any((f) => f.sentAudioOffDevice);
 }
 
 /// Result of probing every provider.
@@ -72,6 +79,7 @@ class ProviderChain {
           kind: FailureKind.unavailable,
           message: 'Health check failed recently; skipped.',
           skipped: true,
+          sentAudioOffDevice: false,
         ));
         continue;
       }
@@ -97,8 +105,12 @@ class ProviderChain {
           providerId: p.id,
           kind: e.kind,
           message: e.message,
+          // Once a network provider has been handed the clip we cannot
+          // prove the bytes did not leave: a connection can drop after the
+          // upload. Only a provider that was never called sent nothing.
+          sentAudioOffDevice: p.sendsAudioOffDevice,
         ));
-        if (e.kind == FailureKind.noDetection) {
+        if (e.kind == FailureKind.noDetection && p.noDetectionIsFinal) {
           // The service answered: it was reachable and heard no bird. That is
           // an answer, not an outage, so we do not shop the clip around to
           // the next provider. Only "not responsive" falls through.
@@ -111,6 +123,7 @@ class ProviderChain {
           providerId: p.id,
           kind: FailureKind.badResponse,
           message: 'Unexpected error: $e',
+          sentAudioOffDevice: p.sendsAudioOffDevice,
         ));
       }
     }

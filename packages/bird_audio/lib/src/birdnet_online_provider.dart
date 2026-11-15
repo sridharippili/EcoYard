@@ -27,6 +27,12 @@ class BirdNetOnlineProvider implements IdentificationProvider {
   @override
   String get label => 'BirdNET';
 
+  @override
+  bool get sendsAudioOffDevice => true;
+
+  @override
+  bool get noDetectionIsFinal => true;
+
   /// The Space has no health route (its root answers 404), so "reachable"
   /// means any HTTP answer below 500. A sleeping Space can take ~20 s to wake;
   /// the chain's probe timeout will report that as unreachable, which is
@@ -83,6 +89,7 @@ class BirdNetOnlineProvider implements IdentificationProvider {
 
     return IdentificationResult(
       providerId: id,
+      sentAudioOffDevice: true,
       providerLabel: label,
       detections: detections,
       rawResponse: res.body,

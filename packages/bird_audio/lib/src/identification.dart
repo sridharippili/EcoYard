@@ -38,6 +38,7 @@ class IdentificationResult {
     required this.providerId,
     required this.providerLabel,
     required this.detections,
+    required this.sentAudioOffDevice,
     this.rawResponse,
   }) : assert(detections.length > 0);
 
@@ -46,6 +47,10 @@ class IdentificationResult {
 
   /// Human label, e.g. `NatureLM`.
   final String providerLabel;
+
+  /// Whether getting this result uploaded the recording. Copied from the
+  /// provider that produced it, so the badge never guesses from an id.
+  final bool sentAudioOffDevice;
 
   /// Best guess first. Never empty.
   final List<Detection> detections;
@@ -88,12 +93,17 @@ class ProviderFailure {
     required this.providerId,
     required this.kind,
     required this.message,
+    required this.sentAudioOffDevice,
     this.skipped = false,
   });
 
   final String providerId;
   final FailureKind kind;
   final String message;
+
+  /// True when this attempt actually uploaded the recording. False when the
+  /// provider never sends audio, and false when it was skipped.
+  final bool sentAudioOffDevice;
 
   /// True when the chain did not even try, because a fresh health check failed.
   final bool skipped;
@@ -129,6 +139,20 @@ class NoProviderAnsweredException implements Exception {
 abstract interface class IdentificationProvider {
   String get id;
   String get label;
+
+  /// Whether identifying with this provider uploads the recording.
+  ///
+  /// The privacy badge is built from this, never from the provider's id: a
+  /// result may only claim the audio stayed on the phone when every provider
+  /// involved says false. Any new network provider must set it true.
+  bool get sendsAudioOffDevice;
+
+  /// Whether "heard no bird" from this provider ends the identification.
+  ///
+  /// True for the online services: they are the reference, so their "nothing
+  /// here" is an answer. False for the on-device model, whose silence only
+  /// means the phone could not tell, so the chain may still ask online.
+  bool get noDetectionIsFinal;
 
   /// Cheap reachability check. Must not throw; return false on any problem.
   Future<bool> isAvailable();

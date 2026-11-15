@@ -9,8 +9,10 @@ class FakeProvider implements IdentificationProvider {
     this.id, {
     this.available = true,
     this.availabilityThrows = false,
+    this.sendsAudioOffDevice = true,
+    this.noDetectionIsFinal = true,
     Object? outcome,
-  }) : outcome = outcome ?? _answer(id);
+  }) : outcome = outcome ?? _answer(id, sendsAudioOffDevice);
 
   @override
   final String id;
@@ -19,6 +21,10 @@ class FakeProvider implements IdentificationProvider {
 
   bool available;
   bool availabilityThrows;
+  @override
+  final bool sendsAudioOffDevice;
+  @override
+  final bool noDetectionIsFinal;
 
   /// Either an [IdentificationResult] to return, or an object to throw.
   Object outcome;
@@ -26,9 +32,11 @@ class FakeProvider implements IdentificationProvider {
   int availabilityCalls = 0;
   int identifyCalls = 0;
 
-  static IdentificationResult _answer(String id) => IdentificationResult(
+  static IdentificationResult _answer(String id, bool sendsOff) =>
+      IdentificationResult(
         providerId: id,
         providerLabel: id.toUpperCase(),
+        sentAudioOffDevice: sendsOff,
         detections: const [Detection(speciesText: 'Northern Cardinal')],
       );
 
@@ -57,6 +65,11 @@ class _SlowProvider implements IdentificationProvider {
   final Duration delay;
 
   @override
+  bool get sendsAudioOffDevice => true;
+  @override
+  bool get noDetectionIsFinal => true;
+
+  @override
   String get label => id.toUpperCase();
 
   @override
@@ -68,7 +81,7 @@ class _SlowProvider implements IdentificationProvider {
   @override
   Future<IdentificationResult> identify(AudioClip clip) async {
     await Future<void>.delayed(delay);
-    return FakeProvider._answer(id);
+    return FakeProvider._answer(id, true);
   }
 }
 
@@ -314,7 +327,7 @@ void main() {
 
       await chain.identify(clip); // nature marked down
       nature
-        ..outcome = FakeProvider._answer('naturelm')
+        ..outcome = FakeProvider._answer('naturelm', true)
         ..available = true;
 
       await chain.checkHealth(force: true); // notebook came back
