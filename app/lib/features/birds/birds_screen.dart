@@ -1,14 +1,28 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_environment.dart';
+import '../../app/content.dart';
 import '../../app/theme.dart';
+import '../plan/plan_controller.dart';
+import 'bird_details.dart';
 import 'birds_controller.dart';
 import 'privacy_copy.dart';
 
 class BirdsScreen extends StatefulWidget {
-  const BirdsScreen({super.key, required this.env});
+  const BirdsScreen({
+    super.key,
+    required this.env,
+    required this.content,
+    required this.plan,
+    required this.onOpenPlan,
+  });
 
   final AppEnvironment env;
+  final AppContent content;
+  final PlanController plan;
+
+  /// Switches to the My Plan tab.
+  final VoidCallback onOpenPlan;
 
   @override
   State<BirdsScreen> createState() => _BirdsScreenState();
@@ -64,7 +78,21 @@ class _BirdsScreenState extends State<BirdsScreen> {
           ],
           const SizedBox(height: 16),
           switch (_c.phase) {
-            BirdsPhase.result => _ResultCard(controller: _c),
+            BirdsPhase.result => _ResultCard(
+              controller: _c,
+              details: BirdDetailsPanel(
+                // A new answer is a new panel, so choices and ticks reset.
+                key: ObjectKey(_c.outcome),
+                detection: _c.outcome!.result.top,
+                content: widget.content,
+                plan: widget.plan,
+                now: widget.env.now,
+                onOpenPlan: () {
+                  _c.dismiss();
+                  widget.onOpenPlan();
+                },
+              ),
+            ),
             BirdsPhase.failed => _FailureCard(controller: _c),
             _ => const SizedBox.shrink(),
           },
@@ -173,8 +201,9 @@ class _RecordButton extends StatelessWidget {
 }
 
 class _ResultCard extends StatelessWidget {
-  const _ResultCard({required this.controller});
+  const _ResultCard({required this.controller, required this.details});
   final BirdsController controller;
+  final Widget details;
 
   @override
   Widget build(BuildContext context) {
@@ -265,12 +294,7 @@ class _ResultCard extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 8),
-            Text(
-              'Habitat tips for this bird arrive in a later phase.',
-              style: const TextStyle(fontSize: 12, color: Colors.black54),
-            ),
-            const SizedBox(height: 8),
-            Row(
+            Wrap(
               children: [
                 if (controller.canRetry)
                   TextButton(
@@ -283,6 +307,10 @@ class _ResultCard extends StatelessWidget {
                 ),
               ],
             ),
+            // The card is always light green, so its contents use the light
+            // theme even in dark mode (otherwise: pale text on pale green).
+            Theme(data: ecoTheme(Brightness.light), child: details),
+            const SizedBox(height: 8),
           ],
         ),
       ),

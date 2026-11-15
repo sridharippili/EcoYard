@@ -3,13 +3,17 @@ import 'package:material_ui/material_ui.dart';
 import '../features/birds/birds_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/placeholder/placeholder_screen.dart';
+import '../features/plan/plan_controller.dart';
+import '../features/plan/plan_screen.dart';
 import 'app_environment.dart';
+import 'content.dart';
 
 /// Five-tab bottom navigation, as in the mockup.
 class Shell extends StatefulWidget {
-  const Shell({super.key, required this.env});
+  const Shell({super.key, required this.env, required this.content});
 
   final AppEnvironment env;
+  final AppContent content;
 
   @override
   State<Shell> createState() => _ShellState();
@@ -17,6 +21,24 @@ class Shell extends StatefulWidget {
 
 class _ShellState extends State<Shell> {
   int _index = 0;
+
+  late final PlanController _plan = PlanController(
+    repo: widget.content.repo,
+    openStore: widget.env.openPlanStore,
+    now: widget.env.now,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _plan.init();
+  }
+
+  @override
+  void dispose() {
+    _plan.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +51,13 @@ class _ShellState extends State<Shell> {
         title: 'Plants',
         message: 'Native Plant Finder arrives in Phase 5.',
       ),
-      BirdsScreen(env: widget.env),
-      const PlaceholderScreen(
-        title: 'My Plan',
-        message: 'Your habitat plan arrives in Phase 4.',
+      BirdsScreen(
+        env: widget.env,
+        content: widget.content,
+        plan: _plan,
+        onOpenPlan: () => setState(() => _index = 3),
       ),
+      PlanScreen(controller: _plan),
       const PlaceholderScreen(
         title: 'Settings',
         message: 'Privacy & Settings arrive in Phase 6.',

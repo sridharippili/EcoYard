@@ -1,9 +1,13 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:bird_audio/bird_audio.dart';
 import 'package:ecoyard/app/app_environment.dart';
+import 'package:ecoyard/app/content.dart';
+import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:ecoyard/main.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart' show Size, Text;
 
 class FakeRecorder implements ClipRecorder {
   FakeRecorder({this.permission = true, this.stopThrows = false});
@@ -66,12 +70,39 @@ class FakeProvider implements IdentificationProvider {
   }
 }
 
+/// The real repo content, read synchronously so it completes under fake async.
+AppContent realAppContent() {
+  String read(String n) => File('../content/$n').readAsStringSync();
+  return AppContent(
+    ReferenceRepository.fromJson(
+      ContentFiles(
+        birds: read('birds.json'),
+        plants: read('plants.json'),
+        birdPlant: read('bird_plant.json'),
+        actions: read('actions.json'),
+        tips: read('tips.json'),
+        aliases: read('taxonomy_aliases.json'),
+      ),
+    ),
+  );
+}
+
+/// 10 November 2026: autumn, so leaf cover and planting are in season.
+DateTime fixedNow() => DateTime.utc(2026, 11, 10, 12);
+
 AppEnvironment fakeEnv({
   List<IdentificationProvider>? providers,
   FakeRecorder? recorder,
+  PlanStore? store,
+  Future<AppContent> Function()? loadContent,
+  Future<PlanStore> Function()? openPlanStore,
+  DateTime Function()? now,
 }) => AppEnvironment(
   chain: ProviderChain(providers ?? [FakeProvider('naturelm')]),
   newRecorder: () => recorder ?? FakeRecorder(),
+  loadContent: loadContent ?? () async => realAppContent(),
+  openPlanStore: openPlanStore ?? () async => store ?? InMemoryPlanStore(),
+  now: now ?? fixedNow,
   loadHomeSample: () async => _homeSample,
 );
 
@@ -84,6 +115,61 @@ const _homeSample = <String, dynamic>{
 
 /// Pumps the whole app with [env] and lets it settle.
 Future<void> pumpApp(WidgetTester tester, AppEnvironment env) async {
+  // A tall phone-width screen, so long result lists need no scrolling.
+  tester.view.physicalSize = const Size(420, 3200);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
   await tester.pumpWidget(EcoYardApp(env: env));
   await tester.pumpAndSettle();
+}
+
+/// A provider that answers with [name] (and optional [confidence]).
+FakeProvider answering(String name, {double? confidence, String? scientific}) =>
+    FakeProvider(
+      'naturelm',
+      outcome: IdentificationResult(
+        providerId: 'naturelm',
+        providerLabel: 'NatureLM',
+        detections: [
+          Detection(
+            speciesText: name,
+            scientificName: scientific,
+            confidence: confidence,
+          ),
+        ],
+      ),
+    );
+
+/// Opens the Birds tab, records and stops, so the result is on screen.
+Future<void> recordAndStop(WidgetTester tester) async {
+  await tester.tap(find.text('Birds').last);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Tap to record'));
+  await tester.pump();
+  await tester.tap(find.textContaining('Tap to stop'));
+  await tester.pumpAndSettle();
+}
+
+/// Every piece of text currently built, for copy checks.
+List<String> allText(WidgetTester tester) => [
+  for (final t in tester.widgetList<Text>(find.byType(Text)))
+    t.data ?? t.textSpan?.toPlainText() ?? '',
+];
+
+/// Overflowing layouts on screen, as widget chains, ignoring Home (its header
+/// and weather card overflow at 320 px and 2x text: known, Phase 0 starter,
+/// listed in docs/STATE.md). Clears the pending framework exception.
+List<String> overflowsOutsideHome(WidgetTester tester) {
+  final found = <String>[];
+  for (final r in tester.allRenderObjects) {
+    if (!r.toStringShort().contains('OVERFLOWING')) continue;
+    final chain =
+        ((r.debugCreator as dynamic).element as dynamic).debugGetCreatorChain(
+          12,
+        ) as String;
+    if (chain.contains('_Header') || chain.contains('_WeatherCard')) continue;
+    found.add(chain);
+  }
+  while (tester.takeException() != null) {}
+  return found;
 }

@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "reviewStatus": "draft",
+  "region": "us-ne",
+  "sources": [
+    "Cornell Lab of Ornithology, All About Birds (diet, nesting, habitat)",
+    "eBird/Clements taxonomy (species codes)"
+  ],
+  "note": "Vertical slice: 10 birds. Hand-written draft; a person must review before release. Aliases live in taxonomy_aliases.json only.",
+  "birds": [
+    {
+      "id": "norcar",
+      "scientificName": "Cardinalis cardinalis",
+      "commonName": "Northern Cardinal",
+      "supportNeeds": [
+        { "need": "food", "why": "Eats seeds, fruit and insects, and feeds its young insects." },
+        { "need": "shelter", "why": "Roosts and hides in dense shrubs and evergreens, especially in winter." },
+        { "need": "nesting", "why": "Nests low in dense shrubs, tangles and vines." },
+        { "need": "water", "why": "Drinks and bathes often; a shallow dish helps all year." },
+        { "need": "safety", "why": "Windows reflect trees and sky, and birds often fly into the glass." }
+      ]
+    },
+    {
+      "id": "blujay",
+      "scientificName": "Cyanocitta cristata",
+      "commonName": "Blue Jay",
+      "supportNeeds": [
+        { "need": "food", "why": "Loves acorns and other nuts, and also eats seeds, fruit and insects." },
+        { "need": "shelter", "why": "Uses tall shrubs and trees, especially oaks and evergreens." },
+        { "need": "nesting", "why": "Builds its nest in the fork of a tree or tall shrub." },
+        { "need": "water", "why": "Bathes and drinks regularly." },
+        { "need": "safety", "why": "Windows reflect trees and sky, and birds often fly into the glass." }
+      ]
+    },
+    {
+      "id": "amerob",
+      "scientificName": "Turdus migratorius",
+      "commonName": "American Robin",
+      "supportNeeds": [
+        { "need": "food", "why": "Eats earthworms and insects in warm months, and fruit and berries in fall and winter." },
+        { "need": "shelter", "why": "Roosts in dense evergreens and trees, often in winter flocks." },
+        { "need": "nesting", "why": "Nests in trees and shrubs, using mud and grass." },
+        { "need": "water", "why": "Drinks and bathes often; also needs mud for nest building." },
+        { "need": "safety", "why": "Windows reflect trees and sky, and birds often fly into the glass." }
+      ]
+    },
+    {
+      "id": "carwre",
+      "scientificName": "Thryothorus ludovicianus",
+      "commonName": "Carolina Wren",
+      "supportNeeds": [
+        { "need": "food", "why": "Eats mostly insects and spiders, found in leaf litter and dense plants." },
+        { "need": "shelter", "why": "Needs thick, tangled cover and brush to hide in, especially in cold weather." },
+        { "need": "nesting", "why": "Nests in cavities and sheltered nooks, including flowerpots and brush piles." },
+        { "need": "water", "why": "Drinks and bathes at shallow water." },
+        { "need": "safety", "why": "Windows reflect trees and sky, and birds often fly into the glass." }
+      ]
+    },
+    {
+      "id": "bkcchi",
+      "scientificName": "Poecile atricapillus",
+      "commonName": "Black-capped Chickadee",
+      "supportNeeds": [
+        { "need": "food", "why": "Feeds its chicks caterpillars and other insects; eats seeds and berries in winter." },
+        { "need": "shelter", "why": "Roosts in cavities and dense evergreens; wants trees and shrubs close together." },
+        { "need": "nesting", "why": "Nests in tree cavities and nest boxes." },
+        { "need": "water", "why": "Drinks and bathes at shallow water." },
+        { "need": "safety", "why": "Windows reflect trees and sky, and birds often fly into the glass." }
+      ]
+    },
+    {
+      "id": "tuftit",
+      "scientificName": "Baeolophus bicolor",
+      "commonName": "Tufted Titmouse",
+      "supportNeeds": [
+        { "need": "food", "why": "Eats insects, seeds, nuts and berries, and stores seeds for later." },
+        { "need": "shelter", "why": "Prefers yards with mature trees and shrubs for cover." },
+        { "need": "nesting", "why": "Nests in tree cavities and nest boxes." },
+        { "need": "water", "why": "Drinks and bathes at shallow water." },
+        { "need": "safety", "why": "Windows reflect trees and sky, and birds often fly into the glass." }
+      ]
+    },
+    {
+      "id": "amegfi",
+      "scientificName": "Spinus tristis",
+      "commonName": "American Goldfinch",
+      "supportNeeds": [
+        { "need": "food", "why": "Eats almost only seeds, from plants such as coneflower, black-eyed Susan, aster and thistle." },
+        { "need": "shelter", "why": "Uses shrubs and small trees for cover and roosting." },
+        { "need": "nesting", "why": "Nests late, in July and August, in shrubs and small trees, lined with plant down." },
+        { "need": "water", "why": "Drinks and bathes often." },
+        { "need": "safety", "why": "Windows reflect trees and sky, and birds often fly into the glass." }
+      ]
+    },
+    {
+      "id": "dowwoo",
+      "scientificName": "Dryobates pubescens",
+      "commonName": "Downy Woodpecker",
+      "supportNeeds": [
+        { "need": "food", "why": "Finds insects in bark and plant stems; also eats some berries and seeds." },
+        { "need": "shelter", "why": "Dead trees and branches give it places to forage and roost." },
+        { "need": "nesting", "why": "Digs its nest hole in dead or decaying wood." },
+        { "need": "water", "why": "Drinks and sometimes bathes at shallow water." },
+        { "need": "safety", "why": "Windows reflect trees and sky, and birds often fly into the glass." }
+      ]
+    },
+    {
+      "id": "whbnut",
+      "scientificName": "Sitta carolinensis",
+      "commonName": "White-breasted Nuthatch",
+      "supportNeeds": [
+        { "need": "food", "why": "Eats insects from tree bark, plus acorns, nuts and seeds." },
+        { "need": "shelter", "why": "Needs mature trees with rough bark." },
+        { "need": "nesting", "why": "Nests in cavities in mature trees." },
+        { "need": "water", "why": "Drinks at shallow water." },
+        { "need": "safety", "why": "Windows reflect trees and sky, and birds often fly into the glass." }
+      ]
+    },
+    {
+      "id": "rthhum",
+      "scientificName": "Archilochus colubris",
+      "commonName": "Ruby-throated Hummingbird",
+      "supportNeeds": [
+        { "need": "food", "why": "Drinks nectar from tubular flowers and eats small insects and spiders." },
+        { "need": "shelter", "why": "Perches and rests in trees and shrubs near flowers." },
+        { "need": "nesting", "why": "Builds a tiny nest on a small tree branch, held together with spider silk." },
+        { "need": "safety", "why": "Windows reflect trees and sky, and birds often fly into the glass." }
+      ]
+    }
+  ]
+}

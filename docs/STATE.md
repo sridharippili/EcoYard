@@ -7,13 +7,13 @@ The working memory for this repo. Keep it short. If this file passes
 
 ## Current state
 
-- **Phase:** 3 — HabitatEngine: built and tested; engine cases are a DRAFT awaiting the user's review and promotion to `fixtures/engine_cases.json`
-- **Status:** `ecoyard_core` now has `HabitatEngine` (ranked actions, plants, need coverage). `dart run scripts/recommend.dart "Northern Cardinal" --month 10` prints a full recommendation from a name. Not wired into the app (Phase 4)
-- **Build:** `scripts/hooks/pre-push.sh` passes: app 21 + ecoyard_core 191 (+1 opt-in skipped) + bird_audio 47 tests, analyzers clean
-- **Release gate:** `scripts/release_check.sh` fails until (a) `fixtures/engine_cases.json` exists, (b) every content file is `reviewed` with `reviewedBy`/`reviewedOn`, (c) every plant has a real photo. It is NOT wired into CI/hooks (guarded files): the user should add it to the release workflow
+- **Phase:** 4 — Bird Details + My Plan built and tested; engine fixtures promoted (`fixtures/engine_cases.json`, 546fcf6). Phase 4 changes are NOT committed yet
+- **Status:** a recorded sound is resolved, run through HabitatEngine and shown under the result (needs, 1-3 actions, plants, chips for space/sun/budget). "Add to my plan" saves to SQLite (`ecoyard.db`) and opens My Plan (progress, tick/untick, merged birds, removed-advice rows). Verified in the iOS Simulator incl. restart persistence
+- **Build:** app 105 + ecoyard_core 203 (+1 opt-in skipped) + bird_audio 102 tests, analyzers clean. `scripts/hooks/pre-push.sh` to be re-run before commit
+- **Release gate:** `scripts/release_check.sh` fails until every content file is `reviewed` with `reviewedBy`/`reviewedOn` and every plant has a real photo. It is NOT wired into CI/hooks (guarded files): the user should add it to the release workflow
 - **Setup after clone:** `scripts/setup.sh` (enables `.githooks/`)
 
-## Known gaps handed to Phase 4 (UI) — see docs/ENGINE_SPEC.md
+## Known gaps (UI) — see docs/ENGINE_SPEC.md
 
 - A need can have no remedy now (`NeedCoverage.hasRemedy == false`). Show "nothing to do this month" and point at `laterActionIds` ("try in spring"); never show a bare need. A remedy that exists but is not among the three shown is "also possible" (`coveredByShownActions` false, `remedyActionIds` not empty)
 - Plants are not month-filtered. Do not imply "plant now" from the plant list
@@ -24,6 +24,17 @@ The working memory for this repo. Keep it short. If this file passes
 - A need blocked only by budget has `moreBudgetActionIds` ("a small budget would unlock..."); one blocked by season has `laterActionIds`. Use them instead of "nothing can help"
 - A plant is never linked for `nesting` unless it gives nesting cover soon after planting (shrubs, vines), never trees
 - Content rows a person must check before release: tip-mar timing wording, `norcar`/`northern-spicebush`, `carwre`/`white-oak` weight, plus everything (all content is unreviewed)
+
+## Known gaps from Phase 4
+
+- Deferred from the spec: weekly reminder toggle (needs a notifications package, Phase 7), bird photo, reference-call player, sightings/journal (engine `journalBirdIds` is passed empty), "See native shrubs" link (Plants tab is a placeholder)
+- Space/sun/budget are session-only chips ("For this suggestion"), not stored (Settings, Phase 6). Budget offers Free / Free + low cost only: `BudgetTier.any` behaves the same as `low` while there are two cost tiers
+- Advice runs on the TOP detection only. An unknown bird gets general advice with no "add to plan" (the plan is keyed by bird id). A medium/low-confidence second detection is only listed under "Also heard"
+- A fuzzy (misspelled) name with no provider score is `low` confidence (resolver rule), so it gets no advice: NatureLM gives no score, so this matters if it misspells
+- Home (`_Header`, `_WeatherCard`) overflows at 320 px width + 2x text: Phase 0 starter, not touched. Birds result and My Plan do not overflow (tested)
+- The database sits in iOS `Documents/ecoyard.db`, which iCloud backup can include. Revisit with the Phase 6 privacy screen ("Delete my data" = `PlanStore.clear()`, already there, no UI)
+- Adding to the plan dismisses the identification result (clip dropped): "back" shows an empty Birds tab. Intentional for now
+- The result card is always light green; the advice inside it is forced to the light theme so it stays legible in dark mode (tested). A proper dark card is a design task
 
 ## Open items (need a human or a later phase)
 
@@ -55,6 +66,9 @@ Append one line per decision. Never delete; supersede with a new line.
 - 2026-11-14 — Engine ranking deviates from PLAN §6's literal "free always above paid": slot 1 is the best FREE action (guaranteed free first step), later slots pick by uncovered needs, free wins only ties. Reason: strict free-first hides the nest box and window action in every month. User to confirm
 - 2026-11-14 — Engine also: signature actions (`featuredForBirdIds`, +2 in selection), no padding (after slot 1 an action must cover a new need, so 1-3 actions), budget-blocked remedies reported. These were decided by the assistant after the critic's end-of-phase review, so user to confirm, especially "fewer than three actions"
 - 2026-11-14 — Every bird now has a `safety` need (window collisions) so `mark-windows` can earn a slot by the same rule as other actions
+- 2026-11-14 — Plan storage: `sqflite` (+ `sqflite_common_ffi` dev only, for tests) approved by the user. Tables `plan_actions` + `plan_action_birds`; PLAN.md's `plan_progress` is derived instead of stored. Each row keeps a snapshot of the action's title/body/cost, so reworded or removed content never changes or breaks a saved plan. Re-adding a done action keeps it done and adds the bird; the banner counts only newly added actions. Region is fixed `us-ne` (the content's region)
+- 2026-11-14 — Stored timestamps are UTC ISO-8601 with exactly 3 fractional digits (`stampFor`), one millisecond apart per action in a single add, so text order = time order. The plan view compares parsed times anyway
+- 2026-11-14 — Confidence tiers on screen: high/medium resolved -> advice; low resolved -> "couldn't identify"; unresolved bird -> general advice only if provider score is null or >= 0.4, else "couldn't identify"; non-bird -> "something other than a bird"
 
 ## Open questions
 
@@ -68,12 +82,13 @@ Only the parts that exist. Add rows as they are built.
 
 | Module | Purpose | Status |
 | --- | --- | --- |
-| `app/` | Flutter app (iOS + Android): Home, Plants, Birds, My Plan, Settings | not created |
+| `app/` | Flutter app (iOS + Android): Home, Plants, Birds (+ advice panel), My Plan, Settings | Home, Birds, My Plan built; Plants/Settings placeholders |
 | `packages/ecoyard_core` | Pure Dart, zero runtime deps (dev: `test`). Models, ReferenceRepository, content validator, SpeciesResolver, HabitatEngine | Phases 2-3 done |
-| `packages/bird_audio` | Providers + fallback chain, recorder, BirdNET runner, SQLite, system services | not created |
+| `packages/bird_audio` | Providers + fallback chain, recorder, plan store (SQLite + numbered migrations) | Phase 1 + 4 done |
 | `content/*.json` | birds, plants, bird_plant, actions, tips, taxonomy_aliases (all `schemaVersion` 1) | 10 birds, 15 plants, 40 links, 10 actions (priority + optional forBirdIds), 12 tips — DRAFT |
 | `scripts/validate_content.dart` | Content checks; same normalizer as the resolver; `--strict` = release gate | done |
 | `scripts/recommend.dart` | Prints a recommendation from a bird name (resolver + engine) | done |
+| `app/assets/content/` | Copies of `content/*.json` for bundling; `scripts/sync_content.sh` copies, `app/test/bundled_content_test.dart` fails on drift | done |
 | `docs/ENGINE_SPEC.md` | The engine's rules in prose | done |
 | `reference/GardenEar/` | Read-only Swift source of the old app. Spec to rewrite from, never built | copied (plain files) |
 | `.githooks/` + `scripts/hooks/` | pre-commit, commit-msg, pre-push checks | done |
@@ -106,12 +121,18 @@ Things that cost time once. Add to this list rather than rediscovering them.
 - Preview the starter in Chrome: `cd app && flutter build web && cd build/web && python3 -m http.server 8765`
 - No Homebrew on this machine. Hooks are plain shell (`core.hooksPath`), no lefthook/Husky/Node needed
 
+- sqflite shares ONE connection per database path: closing a second handle to the same file closes the store's too (bit a test). Tests that peek at the file must not close their handle until the store is closed
+- ISO-8601 strings with different fractional digits do NOT sort as text (`.000Z` sorts after `.000001Z`). Never `compareTo` stored dates; use `stampFor` / parse them
+- `setState(() => x = future)` throws (callback returned a Future): use a block body. Hit in the content-retry button
+- Widget tests: set a tall surface (`pumpApp` does) or long result lists sit below the fold and taps miss; `pumpAndSettle` never returns while a spinner is on screen (use `pump(duration)`)
+
 ---
 
 ## Changelog
 
 Newest first. One line each: date, what changed, where.
 
+- 2026-11-14 — Phase 4: plan domain (core `plan.dart`), SQLite `PlanStore` + migrations (bird_audio, new packages sqflite / sqflite_common_ffi approved), content bundled as assets with drift test, content/DB failure states, BirdDetailsPanel under the Birds result, My Plan screen. Critic (start): required snapshot rows, add semantics, no false copy, failure states (all done). Reviewer: dark-mode legibility, controller dispose/double-init, same timestamp per add, non-atomic load, missing drift test (all fixed). Edge-case pass found and fixed: ISO text-sort bug, `add`/`load` threw synchronously on a closed store, same action twice in one add, no-actions state showing a dead button, double-tap, Try again/Done row overflow at 2x text. Mutation-checked (12 mutations caught). [scope] reminders/photo/call player/journal deferred; Home overflow at 320px left
 - 2026-11-14 — Phase 3: HabitatEngine (+ HabitatQuery/Recommendation/NeedCoverage/BudgetTier), docs/ENGINE_SPEC.md, scripts/recommend.dart, 21 hand-derived draft cases + property tests over 3,564 inputs (mutation-checked: breaking the free slot, season filter, featured bonus, no-padding rule or budget list fails 7 / 10 / 5 / 8 / 2 tests). Content: `priority` + optional `forBirdIds` on actions, `safety` need on every bird. Critic (start) found strict free-first hides the nest box (greedy need coverage), irrelevant actions ranking first (forBirdIds), soft fixture lock (release_check requires fixtures/engine_cases.json). Critic (end) found budget-blocked needs reported as hopeless (moreBudgetActionIds), goldfinch seed-heads never shown (featuredForBirdIds), repeated-need padding (no-padding rule); all fixed and the draft cases re-derived by hand. NOT locked until the user promotes fixtures. [scope] not shown in the app yet
 
 - 2026-11-14 — Phase 2: content/ slice (10 birds, 15 plants, 40 links, 10 actions, 12 tips, aliases; all DRAFT, photos pending); review gate needs reviewedBy + reviewedOn; scripts/release_check.sh; ecoyard_core models + ReferenceRepository + validateContent + SpeciesResolver + shared normalizer; scripts/validate_content.dart; 145 core tests; app moved to material_ui and zero analyzer issues so pre-push passes. New dev dependency (approved): `test` in ecoyard_core. [scope] resolver not yet shown in the app (Phase 4). Critic (end of phase) found a wrong eBird code (ruthum -> rthhum, fixed and all 10 re-verified), no real review gate (added reviewedBy/reviewedOn + scripts/release_check.sh), overstated nesting links and a few tip/action wording mismatches (fixed; 2 actions added)

@@ -10,5 +10,6 @@ export 'src/content_validator.dart';
 export 'src/habitat_engine.dart';
 export 'src/models.dart';
 export 'src/normalize.dart' show normalizeName;
+export 'src/plan.dart';
 export 'src/reference_repository.dart';
 export 'src/species_resolver.dart';

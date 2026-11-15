@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "reviewStatus": "draft",
+  "region": "us-ne",
+  "sources": [
+    "Cornell Lab of Ornithology, All About Birds (diet, nesting)",
+    "Tallamy, D. Bringing Nature Home (host plants for caterpillars)"
+  ],
+  "note": "weight 3 = a main reason to plant it for this bird, 2 = clearly useful, 1 = a bonus. White-breasted Nuthatch has one link only, and black-chokeberry is not linked to any bird yet; both come with the plant scale-up. Nesting links are only for plants that give nesting cover soon after planting (shrubs, vines), never for trees that need decades to grow cavities.",
+  "links": [
+    { "birdId": "norcar", "plantId": "arrowwood-viburnum", "weight": 3, "needs": ["food", "nesting"], "reason": "Fruit to eat and dense branches to nest in." },
+    { "birdId": "norcar", "plantId": "flowering-dogwood", "weight": 2, "needs": ["food"], "reason": "Red fruit in fall." },
+    { "birdId": "norcar", "plantId": "eastern-red-cedar", "weight": 2, "needs": ["shelter"], "reason": "Dense evergreen cover for winter roosting." },
+    { "birdId": "norcar", "plantId": "northern-spicebush", "weight": 1, "needs": ["shelter"], "reason": "Understory shrub cover for hiding." },
+    { "birdId": "norcar", "plantId": "american-holly", "weight": 2, "needs": ["shelter"], "reason": "Evergreen cover that stays thick all winter." },
+    { "birdId": "norcar", "plantId": "black-eyed-susan", "weight": 1, "needs": ["food"], "reason": "Seeds in late summer and fall." },
+
+    { "birdId": "blujay", "plantId": "white-oak", "weight": 3, "needs": ["food", "shelter"], "reason": "Acorns, which jays love and store for winter." },
+    { "birdId": "blujay", "plantId": "flowering-dogwood", "weight": 1, "needs": ["food"], "reason": "Fruit in fall." },
+    { "birdId": "blujay", "plantId": "serviceberry", "weight": 1, "needs": ["food"], "reason": "Fruit in early summer." },
+    { "birdId": "blujay", "plantId": "virginia-creeper", "weight": 1, "needs": ["food"], "reason": "Berries in fall." },
+
+    { "birdId": "amerob", "plantId": "serviceberry", "weight": 3, "needs": ["food"], "reason": "Fruit in June that robins quickly eat." },
+    { "birdId": "amerob", "plantId": "common-winterberry", "weight": 3, "needs": ["food"], "reason": "Red berries that last into winter, when other fruit is gone." },
+    { "birdId": "amerob", "plantId": "american-holly", "weight": 2, "needs": ["food", "shelter"], "reason": "Winter berries and evergreen cover." },
+    { "birdId": "amerob", "plantId": "flowering-dogwood", "weight": 2, "needs": ["food"], "reason": "Red fruit in fall." },
+    { "birdId": "amerob", "plantId": "eastern-red-cedar", "weight": 2, "needs": ["food", "shelter"], "reason": "Berry-like cones in winter and evergreen roosting cover." },
+    { "birdId": "amerob", "plantId": "virginia-creeper", "weight": 2, "needs": ["food"], "reason": "Blue berries in fall." },
+
+    { "birdId": "carwre", "plantId": "eastern-red-cedar", "weight": 2, "needs": ["shelter"], "reason": "Dense evergreen cover from winter weather." },
+    { "birdId": "carwre", "plantId": "northern-spicebush", "weight": 2, "needs": ["shelter", "food"], "reason": "Thick shrub layer to hunt insects and hide in." },
+    { "birdId": "carwre", "plantId": "white-oak", "weight": 2, "needs": ["food"], "reason": "Hosts many caterpillars and other insects it hunts." },
+    { "birdId": "carwre", "plantId": "virginia-creeper", "weight": 1, "needs": ["shelter"], "reason": "Tangled growth for cover." },
+    { "birdId": "carwre", "plantId": "arrowwood-viburnum", "weight": 1, "needs": ["shelter"], "reason": "Dense branches for cover." },
+
+    { "birdId": "bkcchi", "plantId": "white-oak", "weight": 3, "needs": ["food"], "reason": "Hosts hundreds of caterpillar species, the main food for chickadee chicks." },
+    { "birdId": "bkcchi", "plantId": "serviceberry", "weight": 2, "needs": ["food"], "reason": "Hosts caterpillars in spring; fruit in early summer." },
+    { "birdId": "bkcchi", "plantId": "arrowwood-viburnum", "weight": 2, "needs": ["food"], "reason": "Hosts caterpillars; berries in early fall." },
+    { "birdId": "bkcchi", "plantId": "black-eyed-susan", "weight": 1, "needs": ["food"], "reason": "Seeds in fall and winter." },
+    { "birdId": "bkcchi", "plantId": "new-england-aster", "weight": 1, "needs": ["food"], "reason": "Seeds late in the season." },
+
+    { "birdId": "tuftit", "plantId": "white-oak", "weight": 3, "needs": ["food", "shelter"], "reason": "Acorns and caterpillars, plus mature-tree cover." },
+    { "birdId": "tuftit", "plantId": "flowering-dogwood", "weight": 1, "needs": ["food"], "reason": "Fruit in fall." },
+    { "birdId": "tuftit", "plantId": "serviceberry", "weight": 1, "needs": ["food"], "reason": "Hosts caterpillars; fruit in early summer." },
+
+    { "birdId": "amegfi", "plantId": "black-eyed-susan", "weight": 3, "needs": ["food"], "reason": "Seed heads, which finches pick apart from late summer on." },
+    { "birdId": "amegfi", "plantId": "purple-coneflower", "weight": 3, "needs": ["food"], "reason": "Seed heads left standing through fall and winter." },
+    { "birdId": "amegfi", "plantId": "new-england-aster", "weight": 2, "needs": ["food"], "reason": "Seeds late in the season." },
+
+    { "birdId": "dowwoo", "plantId": "white-oak", "weight": 2, "needs": ["food"], "reason": "Insects living in the bark of a mature tree." },
+    { "birdId": "dowwoo", "plantId": "virginia-creeper", "weight": 2, "needs": ["food"], "reason": "Berries in fall." },
+    { "birdId": "dowwoo", "plantId": "flowering-dogwood", "weight": 1, "needs": ["food"], "reason": "Fruit in fall." },
+    { "birdId": "dowwoo", "plantId": "serviceberry", "weight": 1, "needs": ["food"], "reason": "Fruit in early summer." },
+
+    { "birdId": "whbnut", "plantId": "white-oak", "weight": 3, "needs": ["food"], "reason": "Acorns, plus insects in the bark of a mature tree." },
+
+    { "birdId": "rthhum", "plantId": "trumpet-honeysuckle", "weight": 3, "needs": ["food"], "reason": "Red tubular flowers full of nectar, from spring into September." },
+    { "birdId": "rthhum", "plantId": "cardinal-flower", "weight": 3, "needs": ["food"], "reason": "Red tubular flowers with nectar in mid and late summer." },
+    { "birdId": "rthhum", "plantId": "purple-coneflower", "weight": 1, "needs": ["food"], "reason": "Nectar in summer." }
+  ]
+}
