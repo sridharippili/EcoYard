@@ -54,7 +54,15 @@ class PlantDetailScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            const PlantPhotoPlaceholder(),
+            PlantPhotoPlaceholder(credit: content.photos.forPlant(p.id)),
+            if (content.photos.forPlant(p.id) case final c?)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  'Photo: ${c.author} (${c.licence})',
+                  style: text.bodySmall,
+                ),
+              ),
             const SizedBox(height: 12),
             Text(
               p.scientificName,

@@ -77,7 +77,7 @@ class FakeProvider implements IdentificationProvider {
 }
 
 /// The real repo content, read synchronously so it completes under fake async.
-AppContent realAppContent() {
+AppContent realAppContent({bool withPhotos = true}) {
   String read(String n) => File('../content/$n').readAsStringSync();
   return AppContent(
     ReferenceRepository.fromJson(
@@ -90,6 +90,9 @@ AppContent realAppContent() {
         aliases: read('taxonomy_aliases.json'),
       ),
     ),
+    photos: withPhotos
+        ? PhotoCredits.fromJson(read('photo_credits.json'))
+        : PhotoCredits.empty(),
   );
 }
 

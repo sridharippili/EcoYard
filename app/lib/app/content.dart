@@ -3,11 +3,16 @@ import 'package:flutter/services.dart' show rootBundle;
 
 /// The reference content and the things built from it, loaded once.
 class AppContent {
-  AppContent(this.repo)
+  AppContent(this.repo, {PhotoCredits? photos})
     : resolver = SpeciesResolver(repo),
-      engine = HabitatEngine(repo);
+      engine = HabitatEngine(repo),
+      photos = photos ?? PhotoCredits.empty();
 
   final ReferenceRepository repo;
+
+  /// The species photos we ship, with their credits. Empty when the file is
+  /// missing: the screens then show their placeholder rather than nothing.
+  final PhotoCredits photos;
   final SpeciesResolver resolver;
   final HabitatEngine engine;
 
@@ -30,5 +35,13 @@ Future<AppContent> loadBundledContent() async {
     tips: await read('tips.json'),
     aliases: await read('taxonomy_aliases.json'),
   );
-  return AppContent(ReferenceRepository.fromJson(files));
+  PhotoCredits photos;
+  try {
+    photos = PhotoCredits.fromJson(await read('photo_credits.json'));
+  } catch (_) {
+    // Missing or malformed credits must not stop the app: no credit means
+    // no photo, and the placeholders take over.
+    photos = PhotoCredits.empty();
+  }
+  return AppContent(ReferenceRepository.fromJson(files), photos: photos);
 }

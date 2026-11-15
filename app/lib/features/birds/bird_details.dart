@@ -1,4 +1,5 @@
 import 'package:bird_audio/bird_audio.dart';
+import 'package:bird_audio/bird_audio.dart' show Detection;
 import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -42,6 +43,18 @@ class BirdDetailsPanel extends StatefulWidget {
 
   /// Switches to the My Plan tab.
   final VoidCallback onOpenPlan;
+
+  /// The photo for a detection, if we have a credited one. Used by the
+  /// result card above the panel, so the picture sits at the top.
+  static PhotoCredit? photoFor(AppContent content, Detection d) {
+    final m = content.resolver.resolve(
+      rawName: d.speciesText,
+      scientificName: d.scientificName,
+      confidence: d.confidence,
+    );
+    final id = m.taxonId;
+    return id == null ? null : content.photos.forBird(id);
+  }
 
   @override
   State<BirdDetailsPanel> createState() => _BirdDetailsPanelState();

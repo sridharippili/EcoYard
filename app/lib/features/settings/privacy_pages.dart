@@ -1,3 +1,4 @@
+import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/about.dart';
@@ -124,7 +125,80 @@ class AboutScreen extends StatelessWidget {
               'possible matches, not certainties.',
             ),
             h('Photos'),
-            const Text('No photos yet. Credits will be listed here.'),
+            if (content.photos.isEmpty)
+              const Text('No photos yet. Credits will be listed here.')
+            else ...[
+              Text(
+                '${content.photos.all.length} species photos from Wikimedia '
+                'Commons, each used under its own licence.',
+              ),
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => PhotoCreditsScreen(content: content),
+                    ),
+                  ),
+                  child: const Text('Photo credits'),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Every photo we ship, with its author and licence. Required by the
+/// Creative Commons licences the photos are used under.
+class PhotoCreditsScreen extends StatelessWidget {
+  const PhotoCreditsScreen({super.key, required this.content});
+  final AppContent content;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final photos = [...content.photos.all]
+      ..sort((a, b) {
+        final k = a.kind.compareTo(b.kind);
+        return k != 0 ? k : a.id.compareTo(b.id);
+      });
+    String nameFor(PhotoCredit p) =>
+        (p.isBird
+            ? content.repo.birdById(p.id)?.commonName
+            : content.repo.plantById(p.id)?.commonName) ??
+        p.id;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Photo credits')),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          children: [
+            const Text(
+              'Photos come from Wikimedia Commons. Each one is used under '
+              'the licence below, and belongs to the person named.',
+            ),
+            const SizedBox(height: 12),
+            for (final p in photos)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      nameFor(p),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    Text('${p.author} · ${p.licence}'),
+                    if (p.sourceUrl.isNotEmpty)
+                      Text(p.sourceUrl, style: text.bodySmall),
+                  ],
+                ),
+              ),
           ],
         ),
       ),

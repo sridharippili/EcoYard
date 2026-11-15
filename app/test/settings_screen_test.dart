@@ -541,7 +541,10 @@ void main() {
       for (final s in realAppContent().repo.allSources) {
         expect(find.text('• $s'), findsOneWidget, reason: s);
       }
-      expect(find.textContaining('No photos yet'), findsOneWidget);
+      expect(
+        find.textContaining('species photos from Wikimedia'),
+        findsOneWidget,
+      );
       expect(
         find.textContaining('draft that has not been reviewed'),
         findsOneWidget,

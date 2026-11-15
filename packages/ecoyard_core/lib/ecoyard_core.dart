@@ -11,6 +11,7 @@ export 'src/content_validator.dart';
 export 'src/habitat_engine.dart';
 export 'src/models.dart';
 export 'src/normalize.dart' show normalizeName;
+export 'src/photo_credits.dart';
 export 'src/plan.dart';
 export 'src/plant_finder.dart';
 export 'src/reference_repository.dart';

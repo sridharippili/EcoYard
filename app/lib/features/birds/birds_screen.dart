@@ -2,11 +2,12 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_environment.dart';
 
-import 'package:ecoyard_core/ecoyard_core.dart' show AppSettings;
+import 'package:ecoyard_core/ecoyard_core.dart' show AppSettings, PhotoCredit;
 
 import '../../app/content.dart';
 import '../../app/theme.dart';
 import '../plan/plan_controller.dart';
+import '../plants/species_photo.dart';
 import 'bird_details.dart';
 import 'birds_controller.dart';
 import 'privacy_copy.dart';
@@ -87,6 +88,10 @@ class _BirdsScreenState extends State<BirdsScreen> {
           switch (_c.phase) {
             BirdsPhase.result => _ResultCard(
               controller: _c,
+              photo: BirdDetailsPanel.photoFor(
+                widget.content,
+                _c.outcome!.result.top,
+              ),
               details: BirdDetailsPanel(
                 // A new answer is a new panel, so choices and ticks reset.
                 key: ObjectKey(_c.outcome),
@@ -209,9 +214,14 @@ class _RecordButton extends StatelessWidget {
 }
 
 class _ResultCard extends StatelessWidget {
-  const _ResultCard({required this.controller, required this.details});
+  const _ResultCard({
+    required this.controller,
+    required this.details,
+    required this.photo,
+  });
   final BirdsController controller;
   final Widget details;
+  final PhotoCredit? photo;
 
   @override
   Widget build(BuildContext context) {
@@ -229,6 +239,21 @@ class _ResultCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (photo != null) ...[
+              SpeciesPhoto(
+                credit: photo,
+                width: double.infinity,
+                height: 180,
+                radius: 14,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 10),
+                child: Text(
+                  'Photo: ${photo!.author} (${photo!.licence})',
+                  style: const TextStyle(fontSize: 11, color: Colors.black54),
+                ),
+              ),
+            ],
             const Text(
               'POSSIBLE MATCH',
               style: TextStyle(

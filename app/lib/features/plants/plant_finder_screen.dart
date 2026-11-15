@@ -5,6 +5,7 @@ import '../../app/theme.dart';
 
 import '../../app/content.dart';
 import 'plant_detail_screen.dart';
+import 'species_photo.dart';
 import 'plant_finder_controller.dart';
 import 'plant_labels.dart';
 
@@ -60,6 +61,7 @@ class PlantFinderScreen extends StatelessWidget {
               for (final p in r.plants)
                 _PlantCard(
                   plant: p,
+                  photo: content.photos.forPlant(p.plant.id),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (_) => PlantDetailScreen(
@@ -208,8 +210,13 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _PlantCard extends StatelessWidget {
-  const _PlantCard({required this.plant, required this.onTap});
+  const _PlantCard({
+    required this.plant,
+    required this.photo,
+    required this.onTap,
+  });
   final FinderPlant plant;
+  final PhotoCredit? photo;
   final VoidCallback onTap;
 
   @override
@@ -229,7 +236,7 @@ class _PlantCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _PhotoPlaceholder(size: 56),
+              SpeciesPhoto(credit: photo, width: 64, height: 64),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -275,42 +282,18 @@ class _Tag extends StatelessWidget {
   );
 }
 
-/// Stands in for the plant photo until real, credited photos exist
-/// (docs/STATE.md). Honest: a leaf icon, not a made-up picture.
-class _PhotoPlaceholder extends StatelessWidget {
-  const _PhotoPlaceholder({required this.size});
-  final double size;
-  @override
-  Widget build(BuildContext context) => Container(
-    width: size,
-    height: size,
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.primaryContainer,
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Icon(Icons.eco, size: size * 0.5),
-  );
-}
-
-/// Photo stand-in for the detail screen.
+/// Photo stand-in for the detail screen, when a plant has no credited photo.
 class PlantPhotoPlaceholder extends StatelessWidget {
-  const PlantPhotoPlaceholder({super.key});
+  const PlantPhotoPlaceholder({super.key, this.credit});
+
+  final PhotoCredit? credit;
+
   @override
-  Widget build(BuildContext context) => Container(
-    constraints: const BoxConstraints(minHeight: 140),
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.primaryContainer,
-      borderRadius: BorderRadius.circular(16),
-    ),
-    alignment: Alignment.center,
-    child: const Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(Icons.eco, size: 48),
-        SizedBox(height: 4),
-        Text('Photo coming soon'),
-      ],
-    ),
+  Widget build(BuildContext context) => SpeciesPhoto(
+    credit: credit,
+    width: double.infinity,
+    height: 180,
+    radius: 16,
+    placeholderLabel: 'Photo coming soon',
   );
 }
