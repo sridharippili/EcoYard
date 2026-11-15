@@ -8,6 +8,7 @@ environment:
   flutter: ">=3.22.0"
 
 dependencies:
+  crypto: ^3.0.6
   ecoyard_core:
     path: ../ecoyard_core
   flutter:
