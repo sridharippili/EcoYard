@@ -313,6 +313,7 @@ class _Choices extends StatelessWidget {
             ChoiceChip(
               label: Text(text),
               selected: v == value,
+              showCheckmark: true,
               onSelected: (_) => set(v),
             ),
         ],

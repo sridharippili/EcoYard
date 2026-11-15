@@ -6,9 +6,16 @@ import 'plan_controller.dart';
 
 /// My Habitat Plan: the actions the user chose, with progress.
 class PlanScreen extends StatelessWidget {
-  const PlanScreen({super.key, required this.controller});
+  const PlanScreen({
+    super.key,
+    required this.controller,
+    required this.onShowPlants,
+  });
 
   final PlanController controller;
+
+  /// Opens the Plants tab (for actions that mention plants).
+  final VoidCallback onShowPlants;
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +89,11 @@ class PlanScreen extends StatelessWidget {
         _ProgressCard(progress: view.progress),
         const SizedBox(height: 8),
         for (final item in view.items)
-          _PlanTile(item: item, controller: controller),
+          _PlanTile(
+            item: item,
+            controller: controller,
+            onShowPlants: onShowPlants,
+          ),
       ],
     ];
   }
@@ -132,9 +143,14 @@ class _ProgressCard extends StatelessWidget {
 }
 
 class _PlanTile extends StatelessWidget {
-  const _PlanTile({required this.item, required this.controller});
+  const _PlanTile({
+    required this.item,
+    required this.controller,
+    required this.onShowPlants,
+  });
   final PlanItem item;
   final PlanController controller;
+  final VoidCallback onShowPlants;
 
   @override
   Widget build(BuildContext context) {
@@ -161,6 +177,11 @@ class _PlanTile extends StatelessWidget {
               spacing: 12,
               children: [
                 Text(costLabel(item.costJson)),
+                if (item.action?.relatedPlantIds.isNotEmpty ?? false)
+                  TextButton(
+                    onPressed: onShowPlants,
+                    child: const Text('See native plants'),
+                  ),
                 if (item.isRemovedFromContent) ...[
                   const Text('No longer in our advice'),
                   TextButton(

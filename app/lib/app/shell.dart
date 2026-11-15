@@ -3,6 +3,8 @@ import 'package:material_ui/material_ui.dart';
 import '../features/birds/birds_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/placeholder/placeholder_screen.dart';
+import '../features/plants/plant_finder_controller.dart';
+import '../features/plants/plant_finder_screen.dart';
 import '../features/plan/plan_controller.dart';
 import '../features/plan/plan_screen.dart';
 import 'app_environment.dart';
@@ -28,6 +30,11 @@ class _ShellState extends State<Shell> {
     now: widget.env.now,
   );
 
+  late final PlantFinderController _finder = PlantFinderController(
+    content: widget.content,
+    now: widget.env.now,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -36,28 +43,39 @@ class _ShellState extends State<Shell> {
 
   @override
   void dispose() {
+    _finder.dispose();
     _plan.dispose();
     super.dispose();
+  }
+
+  /// Opens the Plants tab from the standard starting choices.
+  void _showPlants() {
+    _finder.showDefaults();
+    setState(() => _index = 1);
   }
 
   @override
   Widget build(BuildContext context) {
     final screens = <Widget>[
       HomeScreen(
-        onNavigate: (i) => setState(() => _index = i),
-        loadSample: widget.env.loadHomeSample,
+        content: widget.content,
+        now: widget.env.now,
+        onIdentify: () => setState(() => _index = 2),
+        onFindPlants: _showPlants,
+        onSmallSpace: () {
+          _finder.showSmallSpace();
+          setState(() => _index = 1);
+        },
+        onMyPlan: () => setState(() => _index = 3),
       ),
-      const PlaceholderScreen(
-        title: 'Plants',
-        message: 'Native Plant Finder arrives in Phase 5.',
-      ),
+      PlantFinderScreen(controller: _finder, content: widget.content),
       BirdsScreen(
         env: widget.env,
         content: widget.content,
         plan: _plan,
         onOpenPlan: () => setState(() => _index = 3),
       ),
-      PlanScreen(controller: _plan),
+      PlanScreen(controller: _plan, onShowPlants: _showPlants),
       const PlaceholderScreen(
         title: 'Settings',
         message: 'Privacy & Settings arrive in Phase 6.',

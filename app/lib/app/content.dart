@@ -10,6 +10,10 @@ class AppContent {
   final ReferenceRepository repo;
   final SpeciesResolver resolver;
   final HabitatEngine engine;
+
+  /// True while ANY content file is still a draft. Screens that mix files
+  /// (plants + actions + tips) show draft wording until all are reviewed.
+  bool get isDraft => repo.reviewStatus == ReviewStatus.draft;
 }
 
 /// Reads `assets/content/*.json` (copies of the repo's `content/`, kept equal

@@ -22,6 +22,5 @@ dev_dependencies:
 
 flutter:
   assets:
-    - assets/sample_home.json
     - assets/content/
   uses-material-design: true

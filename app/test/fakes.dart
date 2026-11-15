@@ -103,15 +103,7 @@ AppEnvironment fakeEnv({
   loadContent: loadContent ?? () async => realAppContent(),
   openPlanStore: openPlanStore ?? () async => store ?? InMemoryPlanStore(),
   now: now ?? fixedNow,
-  loadHomeSample: () async => _homeSample,
 );
-
-const _homeSample = <String, dynamic>{
-  'greeting': 'Hi there!',
-  'subtitle': 'Test subtitle',
-  'weather': {'place': 'Test place', 'summary': 'Test summary', 'tempF': 50},
-  'tip': {'title': "Today's Habitat Tip", 'body': 'Test tip body.'},
-};
 
 /// Pumps the whole app with [env] and lets it settle.
 Future<void> pumpApp(WidgetTester tester, AppEnvironment env) async {

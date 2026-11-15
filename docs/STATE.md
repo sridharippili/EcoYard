@@ -7,9 +7,9 @@ The working memory for this repo. Keep it short. If this file passes
 
 ## Current state
 
-- **Phase:** 4 — Bird Details + My Plan built and tested; engine fixtures promoted (`fixtures/engine_cases.json`, 546fcf6). Phase 4 changes are NOT committed yet
-- **Status:** a recorded sound is resolved, run through HabitatEngine and shown under the result (needs, 1-3 actions, plants, chips for space/sun/budget). "Add to my plan" saves to SQLite (`ecoyard.db`) and opens My Plan (progress, tick/untick, merged birds, removed-advice rows). Verified in the iOS Simulator incl. restart persistence
-- **Build:** app 105 + ecoyard_core 203 (+1 opt-in skipped) + bird_audio 102 tests, analyzers clean. `scripts/hooks/pre-push.sh` to be re-run before commit
+- **Phase:** 5 — Plant Finder + Home built, tested and committed; Phases 1-4 committed, engine fixtures promoted
+- **Status:** Plants tab lists/ranks all plants by space, sun, budget (pure `PlantFinder` in ecoyard_core), with a free first step, plant cards and a plant detail screen. Home shows the real monthly tip (`tips.json`) and three tiles; the fake weather card and sample JSON are gone. My Plan links to the Plants tab for plant-related actions. Verified in the iOS Simulator
+- **Build:** app 153 + ecoyard_core 217 (+1 opt-in skipped) + bird_audio 102 tests, analyzers clean
 - **Release gate:** `scripts/release_check.sh` fails until every content file is `reviewed` with `reviewedBy`/`reviewedOn` and every plant has a real photo. It is NOT wired into CI/hooks (guarded files): the user should add it to the release workflow
 - **Setup after clone:** `scripts/setup.sh` (enables `.githooks/`)
 
@@ -25,13 +25,23 @@ The working memory for this repo. Keep it short. If this file passes
 - A plant is never linked for `nesting` unless it gives nesting cover soon after planting (shrubs, vines), never trees
 - Content rows a person must check before release: tip-mar timing wording, `norcar`/`northern-spicebush`, `carwre`/`white-oak` weight, plus everything (all content is unreviewed)
 
+## Known gaps from Phase 5
+
+- Deferred from the spec: plant "Add to my plan" (needs plan migration 2 + a plan-item kind), Water-Saving Tips tile (needs a forecast), weather card and weather-based tips, location row "Change"/ZIP (region is static text), header notifications button, plant photos and credits ("Photo coming soon" placeholder), care guidance beyond size/water/sun/bloom, tip choice by space type
+- Finder budget rule differs on purpose from the bird advice: the Finder shows a plant when its own `costTier` is allowed by the budget (so "Free only" shows none while every plant is `low`); `HabitatEngine` never offers plants on a free budget. `BudgetTier.any` == `low` while there are two cost tiers (a test fails loudly when a third is added)
+- `PlantFinder` lists every plant, linked or not (an unlinked plant ranks last). The engine's generic mode would drop unlinked plants (black-chokeberry): do not swap it in
+- Draft wording on Plants/Home/Detail follows `repo.reviewStatus` (draft while ANY content file is draft)
+- `nativityLabel` says "Native to the Northeast" for any region: make it region-aware before a second region exists
+- Home is stateless and reads the clock in `build`: a month change while the app stays open shows the old tip until Home rebuilds
+- My Plan's "See native plants" always resets the Finder to defaults (documented rule), even for an action about shade/balcony plants
+
 ## Known gaps from Phase 4
 
 - Deferred from the spec: weekly reminder toggle (needs a notifications package, Phase 7), bird photo, reference-call player, sightings/journal (engine `journalBirdIds` is passed empty), "See native shrubs" link (Plants tab is a placeholder)
 - Space/sun/budget are session-only chips ("For this suggestion"), not stored (Settings, Phase 6). Budget offers Free / Free + low cost only: `BudgetTier.any` behaves the same as `low` while there are two cost tiers
 - Advice runs on the TOP detection only. An unknown bird gets general advice with no "add to plan" (the plan is keyed by bird id). A medium/low-confidence second detection is only listed under "Also heard"
 - A fuzzy (misspelled) name with no provider score is `low` confidence (resolver rule), so it gets no advice: NatureLM gives no score, so this matters if it misspells
-- Home (`_Header`, `_WeatherCard`) overflows at 320 px width + 2x text: Phase 0 starter, not touched. Birds result and My Plan do not overflow (tested)
+- (Fixed in Phase 5) Home used to overflow at 320 px + 2x text; Home, Plants, Detail, Birds result and My Plan are now tested at 320/420 px and 1x/2x text
 - The database sits in iOS `Documents/ecoyard.db`, which iCloud backup can include. Revisit with the Phase 6 privacy screen ("Delete my data" = `PlanStore.clear()`, already there, no UI)
 - Adding to the plan dismisses the identification result (clip dropped): "back" shows an empty Birds tab. Intentional for now
 - The result card is always light green; the advice inside it is forced to the light theme so it stays legible in dark mode (tested). A proper dark card is a design task
@@ -69,6 +79,7 @@ Append one line per decision. Never delete; supersede with a new line.
 - 2026-11-14 — Plan storage: `sqflite` (+ `sqflite_common_ffi` dev only, for tests) approved by the user. Tables `plan_actions` + `plan_action_birds`; PLAN.md's `plan_progress` is derived instead of stored. Each row keeps a snapshot of the action's title/body/cost, so reworded or removed content never changes or breaks a saved plan. Re-adding a done action keeps it done and adds the bird; the banner counts only newly added actions. Region is fixed `us-ne` (the content's region)
 - 2026-11-14 — Stored timestamps are UTC ISO-8601 with exactly 3 fractional digits (`stampFor`), one millisecond apart per action in a single add, so text order = time order. The plan view compares parsed times anyway
 - 2026-11-14 — Confidence tiers on screen: high/medium resolved -> advice; low resolved -> "couldn't identify"; unresolved bird -> general advice only if provider score is null or >= 0.4, else "couldn't identify"; non-bird -> "something other than a bird"
+- 2026-11-14 — Phase 5: Plant Finder logic is a pure `PlantFinder` in ecoyard_core (all plants, ranking by summed link weight then cost then id, hidden count), not the engine's generic mode. Shell owns one `PlantFinderController`: the Plants tab button keeps the user's filters; "Find Native Plants" and My Plan's link reset to defaults; "Small Space" sets Balcony. Home = greeting, Identify, 3 tiles, month tip
 
 ## Open questions
 
@@ -82,8 +93,8 @@ Only the parts that exist. Add rows as they are built.
 
 | Module | Purpose | Status |
 | --- | --- | --- |
-| `app/` | Flutter app (iOS + Android): Home, Plants, Birds (+ advice panel), My Plan, Settings | Home, Birds, My Plan built; Plants/Settings placeholders |
-| `packages/ecoyard_core` | Pure Dart, zero runtime deps (dev: `test`). Models, ReferenceRepository, content validator, SpeciesResolver, HabitatEngine | Phases 2-3 done |
+| `app/` | Flutter app (iOS + Android): Home, Plants (+ detail), Birds (+ advice panel), My Plan, Settings | all built except Settings (placeholder) |
+| `packages/ecoyard_core` | Pure Dart, zero runtime deps (dev: `test`). Models, ReferenceRepository, content validator, SpeciesResolver, HabitatEngine, plan view, PlantFinder | Phases 2-5 done |
 | `packages/bird_audio` | Providers + fallback chain, recorder, plan store (SQLite + numbered migrations) | Phase 1 + 4 done |
 | `content/*.json` | birds, plants, bird_plant, actions, tips, taxonomy_aliases (all `schemaVersion` 1) | 10 birds, 15 plants, 40 links, 10 actions (priority + optional forBirdIds), 12 tips — DRAFT |
 | `scripts/validate_content.dart` | Content checks; same normalizer as the resolver; `--strict` = release gate | done |
@@ -132,6 +143,7 @@ Things that cost time once. Add to this list rather than rediscovering them.
 
 Newest first. One line each: date, what changed, where.
 
+- 2026-11-14 — Phase 5: pure `PlantFinder` (+15 tests, counts cross-checked against the JSON), `PlantFinderController`, Plants tab + Plant Detail, Home with the real monthly tip (weather card, sample JSON and Water-Saving tile removed), My Plan "See native plants" link. Critic (start): engine generic mode drops unlinked plants (own finder), free-only empty state, native/draft wording from data, preset rules, dead-end detail (all done). Reviewer: draft wording from all files, tip draft marker, label wrap at 2x text, explicit checkmarks (done). Found by tests: Home tile row infinite height, header + photo placeholder overflow at 2x. Mutation-checked (6 caught, 1 equivalent). [scope] items in Known gaps from Phase 5 deferred
 - 2026-11-14 — App icon: revised artwork (softer tail, darker leaf, visible circle, legs, sound arcs; inside the Android safe zone) in `docs/design/app_icon.svg` + `app_icon_1024.png` (opaque, no alpha), installed in `app/ios/Runner/Assets.xcassets/AppIcon.appiconset` (all sizes via `sips`). Android adaptive icon (foreground + background) not made yet; no package added
 - 2026-11-14 — Phase 4: plan domain (core `plan.dart`), SQLite `PlanStore` + migrations (bird_audio, new packages sqflite / sqflite_common_ffi approved), content bundled as assets with drift test, content/DB failure states, BirdDetailsPanel under the Birds result, My Plan screen. Critic (start): required snapshot rows, add semantics, no false copy, failure states (all done). Reviewer: dark-mode legibility, controller dispose/double-init, same timestamp per add, non-atomic load, missing drift test (all fixed). Edge-case pass found and fixed: ISO text-sort bug, `add`/`load` threw synchronously on a closed store, same action twice in one add, no-actions state showing a dead button, double-tap, Try again/Done row overflow at 2x text. Mutation-checked (12 mutations caught). [scope] reminders/photo/call player/journal deferred; Home overflow at 320px left
 - 2026-11-14 — Phase 3: HabitatEngine (+ HabitatQuery/Recommendation/NeedCoverage/BudgetTier), docs/ENGINE_SPEC.md, scripts/recommend.dart, 21 hand-derived draft cases + property tests over 3,564 inputs (mutation-checked: breaking the free slot, season filter, featured bonus, no-padding rule or budget list fails 7 / 10 / 5 / 8 / 2 tests). Content: `priority` + optional `forBirdIds` on actions, `safety` need on every bird. Critic (start) found strict free-first hides the nest box (greedy need coverage), irrelevant actions ranking first (forBirdIds), soft fixture lock (release_check requires fixtures/engine_cases.json). Critic (end) found budget-blocked needs reported as hopeless (moreBudgetActionIds), goldfinch seed-heads never shown (featuredForBirdIds), repeated-need padding (no-padding rule); all fixed and the draft cases re-derived by hand. NOT locked until the user promotes fixtures. [scope] not shown in the app yet
