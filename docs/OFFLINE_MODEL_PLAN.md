@@ -297,6 +297,45 @@ Regional species filter, NatureLM on device, background download, resume, model
 updates (`modelVersion` is stored for a later update flow), Android verification,
 a sightings journal.
 
+## Gate results (2026-11-14)
+
+### Gate 1: model runs inside EcoYard: PASS (mechanics); accuracy NOT yet measured
+- iOS Simulator (iPhone 18 Pro, iOS 27.2), DEBUG build, `tflite_flutter` 0.11.0 via
+  CocoaPods, model loaded with `Interpreter.fromFile` from the app's
+  `Library/Caches` (a plain file, not an asset): load 129 ms; input 144000,
+  output 6522, labels 6522; one 3 s window 30-36 ms after the first run (142 ms
+  cold). A 10 s clip (3-4 windows) is about 0.1-0.15 s of inference here.
+  Real-iPhone RELEASE timing (acceptance 2) is still to measure.
+- No real bird clips yet, so top-1 accuracy (acceptance 1) is unmeasured.
+- FINDING (blocks step 5): pure white noise scored "Lesser Spotted Woodpecker"
+  (a European bird) at 0.463 post-sigmoid. With the planned 0.1 floor and no
+  regional filter, the offline path would confidently name birds that cannot be
+  in the user's yard. Silence and a pure tone stayed below 0.01 (top classes
+  "Engine", "Human vocal"). Decision needed before step 5 (see "Decision F").
+
+### Gate 2: online services accept WAV: PASS for BirdNET online; NatureLM UNTESTED
+- BirdNET (HF Space `/analyze`), 10 s 48 kHz mono PCM16 WAV (960 KB, synthetic
+  chirps): decoded and analysed (HTTP 404 "No species detected", the expected
+  answer). Control: 960 KB of random bytes named `.wav` -> HTTP 500 "Audio
+  conversion failed", so the WAV really was parsed (the Space runs ffmpeg, which
+  reads the content, not the name). Over a throttled ~0.5 Mbit/s uplink: 14.7 s,
+  inside the 40 s timeout of `standardOnlineChain`.
+- NatureLM: router `/health` reports `active_providers: []` (Kaggle notebook off),
+  so WAV acceptance cannot be tested. Rule until tested: a WAV clip may still go
+  to NatureLM; if it is rejected, the chain falls through to BirdNET online,
+  which is now known to accept WAV. Re-test when the notebook is on.
+
+### Decision F (needed before step 5): what may the offline model name?
+- (a) Closed set: only species we have content for (10 now), plus the non-bird
+  classes. Anything else = "couldn't identify offline" and falls through to the
+  online services. High precision, honest, small.
+- (b) A Northeast species list (a few hundred, as `content/` JSON from a sourced
+  regional checklist, reviewed by a person); species outside our content get
+  the existing general advice.
+- (c) BirdNET's location model: needs location, which the app does not use. No.
+- Either way the score floor goes up from 0.1 (noise reached 0.46) and is set
+  from real clips, not guessed.
+
 ## Decisions (answered 2026-11-14)
 
 - A. Model hosting: OPEN. The user uploads the model and label files to a

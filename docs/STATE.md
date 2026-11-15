@@ -7,7 +7,7 @@ The working memory for this repo. Keep it short. If this file passes
 
 ## Current state
 
-- **Phase:** 6 — Privacy & Settings built, tested and committed; Phases 1-5 committed. Next planned: Phase 7 (weather, notifications, polish). User asked (after Phase 6) for an offline-model download in Settings: see Open items, it reverses the v1 online-only decision and needs approval
+- **Phase:** 6.5 — Offline identification IN PROGRESS: Gate 1 (model runs in the app) PASS, Gate 2 (WAV accepted) PASS for BirdNET online, NatureLM untested (notebook off). Phase 6 committed; Phases 1-5 committed. Next planned: Phase 7 (weather, notifications, polish). User asked (after Phase 6) for an offline-model download in Settings: see Open items, it reverses the v1 online-only decision and needs approval
 - **Status:** Settings tab: saved defaults (space/sun/budget), privacy facts, Manage my data (real counts, copy as JSON), Delete my data (one transaction, VACUUM, returns to first launch), draft privacy policy, About (sources from content), 3-screen onboarding. Tab bar is a floating frosted-glass pill (`GlassNavBar`). Verified in the iOS Simulator (real v1->v2 DB migration, real erase)
 - **Build:** app 229 + ecoyard_core 235 (+1 opt-in skipped) + bird_audio 131 tests, analyzers clean
 - **Release gate:** `scripts/release_check.sh` fails until every content file is `reviewed` with `reviewedBy`/`reviewedOn` and every plant has a real photo. It is NOT wired into CI/hooks (guarded files): the user should add it to the release workflow
@@ -150,12 +150,15 @@ Things that cost time once. Add to this list rather than rediscovering them.
 - `setState(() => x = future)` throws (callback returned a Future): use a block body. Hit in the content-retry button
 - Widget tests: set a tall surface (`pumpApp` does) or long result lists sit below the fold and taps miss; `pumpAndSettle` never returns while a spinner is on screen (use `pump(duration)`)
 
+- `tflite_flutter` adds CocoaPods to app/ios: always build iOS with the rbenv Ruby on PATH (`export PATH="$HOME/.rbenv/versions/3.3.13/bin:$PATH" LANG=en_US.UTF-8`). Reinstalling the app in the simulator can move its data container: never bake a container path into a build, resolve it at run time
+
 ---
 
 ## Changelog
 
 Newest first. One line each: date, what changed, where.
 
+- 2026-11-14 — Phase 6.5 gates: `tflite_flutter` 0.11.0 added to bird_audio (approved), `BirdModelRunner`/`TfliteRunner` (load from a plain file); CocoaPods now integrated in app/ios (Podfile, xcconfigs, pbxproj; the pbxproj also carries the user's DEVELOPMENT_TEAM). Gate 1 PASS in the simulator (129 ms load, ~33 ms per 3 s window, debug); white noise -> a European woodpecker at 0.46, so a regional filter/higher floor is needed (Decision F). Gate 2: BirdNET online accepts WAV (control with garbage fails), 14.7 s at ~0.5 Mbit/s; NatureLM untested
 - 2026-11-14 — Offline-model plan written and critic-reviewed (docs/OFFLINE_MODEL_PLAN.md); five decisions recorded; no code yet. Critic found: badge must derive from facts + property test, WAV change touches AudioClip/recorder/AudioCache regex/tests (privacy regression if the sweep regex is missed), chain rules for load/timeout/isolate, download races/redirects, measurable acceptance, validator + release-gate rules for offline_model.json
 - 2026-11-14 — Phase 6: AppSettings/DataSummary/exportMyData (core), migration 2 + AppStorage/SettingsStore/AudioCache (bird_audio), Settings screen + Manage/Delete/Policy/About + onboarding + SettingsController (app), `FileMeta.sources`. Critic (start): delete wording, atomic wipe, v1->v2 test first, defaults vs presets, onboarding scope (all done). Reviewer: VACUUM best-effort, onboarding save failure dead end, serialised saves, no default-overwrite after failed load, sweep after first frame (all done). Found by tests: setState-with-Future in Manage retry, hung-DB spinner (5 s timeout). Glass tab bar added at the user's request. Mutation-checked (14 caught, 1 dead-code removed). Spec deviations in Known gaps from Phase 6
 - 2026-11-14 — Phase 5: pure `PlantFinder` (+15 tests, counts cross-checked against the JSON), `PlantFinderController`, Plants tab + Plant Detail, Home with the real monthly tip (weather card, sample JSON and Water-Saving tile removed), My Plan "See native plants" link. Critic (start): engine generic mode drops unlinked plants (own finder), free-only empty state, native/draft wording from data, preset rules, dead-end detail (all done). Reviewer: draft wording from all files, tip draft marker, label wrap at 2x text, explicit checkmarks (done). Found by tests: Home tile row infinite height, header + photo placeholder overflow at 2x. Mutation-checked (6 caught, 1 equivalent). [scope] items in Known gaps from Phase 5 deferred

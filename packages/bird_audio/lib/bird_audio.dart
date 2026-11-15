@@ -5,6 +5,7 @@ export 'src/birdnet_online_provider.dart';
 export 'src/http_support.dart' show MultipartBody, buildAudioMultipart;
 export 'src/identification.dart';
 export 'src/naturelm_provider.dart';
+export 'src/offline/model_runner.dart';
 export 'src/persistence/app_storage.dart';
 export 'src/persistence/audio_cache.dart';
 export 'src/persistence/migrations.dart';
