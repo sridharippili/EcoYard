@@ -177,6 +177,7 @@ void main() {
 
     provider.outcome = IdentificationResult(
       providerId: 'naturelm',
+      sentAudioOffDevice: true,
       providerLabel: 'NatureLM',
       detections: const [Detection(speciesText: 'American Goldfinch')],
     );

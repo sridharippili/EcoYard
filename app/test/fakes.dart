@@ -46,6 +46,7 @@ class FakeProvider implements IdentificationProvider {
           IdentificationResult(
             providerId: id,
             providerLabel: id == 'naturelm' ? 'NatureLM' : 'BirdNET',
+            sentAudioOffDevice: true,
             detections: const [Detection(speciesText: 'Northern Cardinal')],
           );
 
@@ -53,6 +54,11 @@ class FakeProvider implements IdentificationProvider {
   final String id;
   @override
   String get label => id == 'naturelm' ? 'NatureLM' : 'BirdNET';
+
+  @override
+  bool get sendsAudioOffDevice => true;
+  @override
+  bool get noDetectionIsFinal => true;
 
   bool available;
   Object outcome;
@@ -149,6 +155,7 @@ FakeProvider answering(String name, {double? confidence, String? scientific}) =>
       outcome: IdentificationResult(
         providerId: 'naturelm',
         providerLabel: 'NatureLM',
+        sentAudioOffDevice: true,
         detections: [
           Detection(
             speciesText: name,

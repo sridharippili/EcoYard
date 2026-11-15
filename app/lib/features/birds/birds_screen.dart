@@ -280,15 +280,17 @@ class _ResultCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  Icons.cloud_upload_outlined,
+                Icon(
+                  o.audioLeftDevice
+                      ? Icons.cloud_upload_outlined
+                      : Icons.phone_iphone,
                   size: 16,
                   color: Colors.black54,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    privacyBadge(o.result),
+                    privacyBadge(o),
                     style: const TextStyle(fontSize: 12, color: Colors.black54),
                   ),
                 ),

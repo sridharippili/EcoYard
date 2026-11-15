@@ -19,6 +19,29 @@ Future<void> pumpPhone(WidgetTester tester, {double scale = 1.0}) async {
 
 Rect bar(WidgetTester tester) => tester.getRect(find.byType(GlassNavBar));
 
+/// The colours the frosted pill is painted with.
+List<Color> glassColors(WidgetTester tester) {
+  // The frosted pill: the painted box inside the blur that has a fill.
+  final boxes = tester
+      .widgetList<DecoratedBox>(
+        find.descendant(
+          of: find.descendant(
+            of: find.byType(GlassNavBar),
+            matching: find.byType(BackdropFilter),
+          ),
+          matching: find.byType(DecoratedBox),
+        ),
+      )
+      .map((b) => b.decoration)
+      .whereType<BoxDecoration>()
+      .where((d) => d.gradient != null || d.color != null);
+  expect(boxes, isNotEmpty, reason: 'the glass pill must be painted');
+  final d = boxes.first;
+  return d.gradient != null
+      ? (d.gradient! as LinearGradient).colors
+      : [d.color!];
+}
+
 void main() {
   testWidgets('the tab bar is frosted glass: a blur over a translucent pill', (
     tester,
@@ -31,13 +54,12 @@ void main() {
     expect(glass, findsOneWidget);
     final filter = tester.widget<BackdropFilter>(glass).filter;
     expect(filter, isA<ImageFilter>());
-    // Translucent, not an opaque bar.
-    final box = tester.widget<DecoratedBox>(
-      find.descendant(of: glass, matching: find.byType(DecoratedBox)).first,
-    );
-    final color = (box.decoration as BoxDecoration).color!;
-    expect(color.a, lessThan(0.9));
-    expect(color.a, greaterThan(0.2));
+    // Translucent, not an opaque bar: every colour of the sheen lets the
+    // page through.
+    for (final c in glassColors(tester)) {
+      expect(c.a, lessThan(0.9));
+      expect(c.a, greaterThan(0.2));
+    }
   });
 
   testWidgets('it floats: rounded, inset from the screen edges', (
@@ -123,22 +145,12 @@ void main() {
     addTearDown(tester.platformDispatcher.clearAllTestValues);
     await pumpPhone(tester);
     expect(tester.takeException(), isNull);
-    final box = tester.widget<DecoratedBox>(
-      find
-          .descendant(
-            of: find.descendant(
-              of: find.byType(GlassNavBar),
-              matching: find.byType(BackdropFilter),
-            ),
-            matching: find.byType(DecoratedBox),
-          )
-          .first,
-    );
-    final color = (box.decoration as BoxDecoration).color!;
-    expect(
-      color.computeLuminance(),
-      lessThan(0.2),
-      reason: 'dark glass should be dark',
-    );
+    for (final c in glassColors(tester)) {
+      expect(
+        c.computeLuminance(),
+        lessThan(0.2),
+        reason: 'dark glass should be dark',
+      );
+    }
   });
 }

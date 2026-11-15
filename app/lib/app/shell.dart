@@ -15,6 +15,7 @@ import '../features/settings/onboarding_screen.dart';
 import '../features/settings/settings_controller.dart';
 import '../features/settings/settings_screen.dart';
 import 'app_environment.dart';
+import 'bird_icon.dart';
 import 'content.dart';
 import 'glass_nav_bar.dart';
 
@@ -199,8 +200,8 @@ class _ShellState extends State<Shell> {
             label: 'Plants',
           ),
           NavigationDestination(
-            icon: Icon(Icons.flutter_dash_outlined),
-            selectedIcon: Icon(Icons.flutter_dash),
+            icon: BirdIcon(),
+            selectedIcon: BirdIcon(filled: true),
             label: 'Birds',
           ),
           NavigationDestination(
