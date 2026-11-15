@@ -100,6 +100,9 @@ Append one line per decision. Never delete; supersede with a new line.
 
 - 2026-11-15 — Photo licences: most are CC BY-SA 4.0/3.0 (share-alike) or CC BY; two are public domain. Share-alike is fine for use with attribution, but a lawyer should confirm before a paid/commercial release. Credits are shown in About and the licence text is in `content/photo_credits.json`
 
+- 2026-11-15 — Location is now used, but only after the user asks: the weather card shows nothing until they tap "Use my area" (a system permission prompt) or type a town. Either way the position is rounded to ~11 km (`Place.coarse`) before it is saved or sent, and only that goes to Open-Meteo. `NSLocationWhenInUseUsageDescription` added to Info.plist
+- 2026-11-15 — Weather-driven tips (spec 4.1/5.1: "skip watering", frost, heat) are NOT built: the tip is still one per month from `tips.json`. That needs new content with weather conditions
+
 ## Open questions
 
 - ~~Native Swift or Flutter?~~ Resolved 2026-11-14: Flutter (spike still gates the real build)
@@ -164,6 +167,7 @@ Things that cost time once. Add to this list rather than rediscovering them.
 
 Newest first. One line each: date, what changed, where.
 
+- 2026-11-15 — Weather on Home (Phase 7, part 1): `WeatherNow`/`Place`/staleness in ecoyard_core; `OpenMeteoWeather` (no API key, coarse coordinates only) and `GeolocatorLocation` in bird_audio/system; `WeatherController` + weather card + place picker in the app. The card is OFF until the user taps "Use my area" or types a town; it refreshes at most once an hour, when Home is shown. New packages (approved): `geolocator`. PRIVACY COPY CHANGED: "EcoYard does not use your location" is gone; Settings, the policy and onboarding now describe the approximate-area use. Bugs found by tests: settings writes merge, so removing a place left the old one behind (every key is now always written); "Delete my data" wrote a settings row straight back after the wipe; the weather never refreshed after launch. 30 new tests, mutation-checked
 - 2026-11-15 — Species photos: `scripts/fetch_photos.py` (Wikimedia, licence + author from the API, refuses NC/ND, resume and backoff), 25 images in `app/assets/photos/` (2.6 MB), `content/photo_credits.json`, `PhotoCredits` in ecoyard_core, `SpeciesPhoto` widget, photos on plant cards, plant detail, the bird result card (above the name, as in the mockup) and a Photo credits screen in About. A photo is only ever shown when a credit exists; a broken file falls back to the placeholder. 15 new tests
 - 2026-11-15 — UI fixes after a mockup comparison: the Birds tab showed Flutter's Dash mascot (now a painted bird matching the app icon, `lib/app/bird_icon.dart`); the glass bar now has a sheen gradient, stronger edge and shadow so it reads as frosted even where little scrolls behind it. `privacyBadge` now takes the whole `ChainOutcome` and says "Identified on this phone. The recording was not sent anywhere." only when `audioLeftDevice` is false (3 new tests + mutation-checked)
 - 2026-11-15 — Phase 6.5 step 5 (core): `IdentificationProvider` gains `sendsAudioOffDevice` and `noDetectionIsFinal` (both explicit, so a new network provider cannot silently claim privacy); `ChainOutcome.audioLeftDevice`; `BirdNetLocalProvider` (lazy single load, unavailable on load/runner failure + closes the model, badResponse on unreadable audio, noDetection not final). 648-case property test on the privacy claim + 16 local-provider tests; 6 mutations caught. Not wired into the app yet

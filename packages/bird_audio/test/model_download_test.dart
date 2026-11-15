@@ -258,26 +258,28 @@ void main() {
       expect(part().existsSync(), isFalse);
     });
 
-    test('cancel stops the transfer early, it does not finish the file first',
-        () async {
+    test(
+        'cancel stops the download early: it does not read the whole file '
+        'first', () async {
       final cancel = CancelToken();
-      var sentTotal = 0;
-      final client = FakeClient(
-        body: payload,
-        chunkSize: 100,
-        onChunk: (sent) {
-          sentTotal = sent;
-          if (sent >= 200) cancel.cancel();
-        },
-      );
+      var lastReceived = 0;
+      // Cancel from the reader's own progress, so this does not depend on
+      // how far ahead the fake server has run.
       await expectLater(
-        store(client).download(spec(), cancel: cancel),
+        store(FakeClient(body: payload, chunkSize: 100)).download(
+          spec(),
+          cancel: cancel,
+          onProgress: (received, _) {
+            lastReceived = received;
+            if (received >= 200) cancel.cancel();
+          },
+        ),
         throwsA(isA<ModelDownloadCancelled>()),
       );
-      // Without a mid-stream check the whole 1000 bytes would arrive first;
-      // for the real 52 MB model that is the whole point of Cancel.
-      expect(sentTotal, lessThan(payload.length),
-          reason: 'cancel must stop the stream, not just the result');
+      expect(lastReceived, lessThan(payload.length),
+          reason: 'the reader must stop, not finish the file');
+      expect(out().existsSync(), isFalse);
+      expect(part().existsSync(), isFalse);
     });
 
     test('cancelling before it starts downloads nothing', () async {

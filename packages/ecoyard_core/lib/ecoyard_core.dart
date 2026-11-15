@@ -16,3 +16,4 @@ export 'src/plan.dart';
 export 'src/plant_finder.dart';
 export 'src/reference_repository.dart';
 export 'src/species_resolver.dart';
+export 'src/weather.dart';

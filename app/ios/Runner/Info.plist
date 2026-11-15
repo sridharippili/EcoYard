@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>EcoYard uses your approximate area, rounded to about 10 miles, to show the local weather. Your exact position is never used or saved, and you can type a town instead.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>EcoYard records a short clip when you tap Identify, so it can find out which bird you are hearing. The clip is sent online to identify it.</string>
 	<key>UIApplicationSceneManifest</key>

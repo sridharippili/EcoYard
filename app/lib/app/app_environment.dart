@@ -11,6 +11,8 @@ class AppEnvironment {
     required this.loadContent,
     required this.openStorage,
     required this.audioCache,
+    required this.weather,
+    required this.location,
     this.now = DateTime.now,
   });
 
@@ -22,6 +24,8 @@ class AppEnvironment {
     loadContent: loadBundledContent,
     openStorage: SqliteAppStorage.open,
     audioCache: AudioCache(),
+    weather: OpenMeteoWeather(),
+    location: const GeolocatorLocation(),
   );
 
   final ProviderChain chain;
@@ -38,6 +42,13 @@ class AppEnvironment {
 
   /// Removes recordings left behind by a crash. Never throws.
   final AudioCache audioCache;
+
+  /// The weather service. Also used to search for a town.
+  final WeatherService weather;
+
+  /// The device's approximate location, asked for only when the user taps
+  /// "Use my area".
+  final DeviceLocation location;
 
   /// The clock. Used for the month (advice) and for plan timestamps.
   final DateTime Function() now;

@@ -63,6 +63,15 @@ class SettingsController extends ChangeNotifier {
         s.copyWith(defaultSpace: space, defaultSun: sun, defaultBudget: budget),
   );
 
+  /// Saves the place the weather is for. Passing no place forgets it.
+  Future<bool> savePlace({Place? place, bool? useDeviceLocation}) => _save(
+    (s) => s.copyWith(
+      place: place,
+      clearPlace: place == null,
+      useDeviceLocation: useDeviceLocation,
+    ),
+  );
+
   /// The introduction was seen or skipped.
   Future<bool> markOnboarded() =>
       _save((s) => s.copyWith(onboardingDone: true));

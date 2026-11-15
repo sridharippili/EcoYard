@@ -117,7 +117,10 @@ void main() {
         find.textContaining('does not save it on your phone'),
         findsOneWidget,
       );
-      expect(find.textContaining('does not use your location'), findsOneWidget);
+      expect(
+        find.textContaining('EcoYard asks only if you tap'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('has no toggles that would control nothing', (tester) async {

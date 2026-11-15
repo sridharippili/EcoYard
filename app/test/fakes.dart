@@ -99,6 +99,84 @@ AppContent realAppContent({bool withPhotos = true}) {
 /// 10 November 2026: autumn, so leaf cover and planting are in season.
 DateTime fixedNow() => DateTime.utc(2026, 11, 10, 12);
 
+/// A weather service that answers from memory. Tests never hit the network.
+class FakeWeather implements WeatherService, PlaceSearch {
+  FakeWeather({
+    this.weather,
+    this.failWith,
+    this.matches = const [],
+    DateTime Function()? now,
+  }) : _now = now ?? fixedNow;
+
+  /// Stamps readings, so staleness can be tested against the same clock the
+  /// app uses.
+  final DateTime Function() _now;
+
+  /// What to return. Null means a plain failure.
+  WeatherNow? weather;
+
+  /// Set to make the next call fail with this message.
+  String? failWith;
+
+  /// What a place search returns.
+  List<Place> matches;
+
+  final asked = <Place>[];
+  final searched = <String>[];
+
+  @override
+  Future<WeatherNow> forPlace(Place place) async {
+    asked.add(place);
+    final f = failWith;
+    if (f != null) throw WeatherUnavailable(f);
+    return weather ??
+        WeatherNow(
+          tempF: 58,
+          highF: 61,
+          lowF: 44,
+          condition: WeatherCondition.cloudy,
+          observedAt: _now().toUtc().toIso8601String(),
+        );
+  }
+
+  @override
+  Future<List<Place>> search(String query) async {
+    searched.add(query);
+    final f = failWith;
+    if (f != null) throw WeatherUnavailable(f);
+    return matches;
+  }
+}
+
+/// A device location that answers however the test wants.
+class FakeLocation implements DeviceLocation {
+  FakeLocation({this.outcome = LocationOutcome.got, this.place});
+
+  LocationOutcome outcome;
+  Place? place;
+  var calls = 0;
+
+  /// A misbehaving source: reports a refusal but still returns a position.
+  /// Nothing may be saved from it.
+  bool alsoGivePlaceOnRefusal = false;
+
+  @override
+  Future<LocationResult> approximatePlace() async {
+    calls++;
+    if (outcome != LocationOutcome.got) {
+      return LocationResult(
+        outcome,
+        alsoGivePlaceOnRefusal ? place?.coarse : null,
+      );
+    }
+    return LocationResult(
+      outcome,
+      (place ?? const Place(name: 'Nearby', latitude: 40.74, longitude: -74.55))
+          .coarse,
+    );
+  }
+}
+
 AppEnvironment fakeEnv({
   List<IdentificationProvider>? providers,
   FakeRecorder? recorder,
@@ -108,6 +186,8 @@ AppEnvironment fakeEnv({
   AppStorage? storage,
   Future<AppStorage> Function()? openStorage,
   AudioCache? audioCache,
+  WeatherService? weather,
+  DeviceLocation? location,
   bool onboarded = true,
   DateTime Function()? now,
 }) => AppEnvironment(
@@ -127,6 +207,8 @@ AppEnvironment fakeEnv({
             }),
           ),
   audioCache: audioCache ?? FakeAudioCache(),
+  weather: weather ?? FakeWeather(),
+  location: location ?? FakeLocation(),
   now: now ?? fixedNow,
 );
 

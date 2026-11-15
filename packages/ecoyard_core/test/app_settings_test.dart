@@ -85,6 +85,60 @@ void main() {
       }
     });
 
+    test('a place round-trips, and clearing it works', () {
+      const p = Place(
+        name: 'Basking Ridge',
+        admin: 'New Jersey',
+        latitude: 40.7,
+        longitude: -74.5,
+      );
+      const s = AppSettings(place: p, useDeviceLocation: true);
+      final back = AppSettings.fromMap(s.toMap());
+      expect(back.place, p);
+      expect(back.useDeviceLocation, isTrue);
+      expect(back.copyWith(clearPlace: true).place, isNull);
+    });
+
+    test(
+        'removing a place really removes it, even in a store that merges '
+        'what it is given', () {
+      const p = Place(name: 'X', admin: 'Y', latitude: 1.5, longitude: -2.5);
+      final stored = <String, String>{...const AppSettings(place: p).toMap()};
+      // A store that merges: write the settings again with no place.
+      stored.addAll(const AppSettings().toMap());
+      expect(AppSettings.fromMap(stored).place, isNull);
+    });
+
+    test('no place stored means no place, and location is off by default', () {
+      expect(AppSettings.initial.place, isNull);
+      expect(AppSettings.initial.useDeviceLocation, isFalse);
+      expect(AppSettings.fromMap({}).place, isNull);
+    });
+
+    test('a half-written or corrupt place is dropped, not half-used', () {
+      for (final m in [
+        {AppSettings.keyPlaceName: 'X'},
+        {AppSettings.keyPlaceLat: '40.7', AppSettings.keyPlaceLon: '-74.5'},
+        {
+          AppSettings.keyPlaceName: 'X',
+          AppSettings.keyPlaceLat: 'abc',
+          AppSettings.keyPlaceLon: '-74.5',
+        },
+      ]) {
+        expect(AppSettings.fromMap(m).place, isNull, reason: '$m');
+      }
+    });
+
+    test('a stored place keeps the other settings readable', () {
+      final s = AppSettings.fromMap({
+        AppSettings.keySpace: 'balcony',
+        AppSettings.keyPlaceName: 'X',
+        AppSettings.keyPlaceLat: 'nonsense',
+      });
+      expect(s.defaultSpace, SpaceType.balcony);
+      expect(s.place, isNull);
+    });
+
     test('copyWith changes only what it is given', () {
       const base = AppSettings(
         defaultSpace: SpaceType.balcony,

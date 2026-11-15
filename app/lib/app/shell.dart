@@ -11,6 +11,7 @@ import '../features/plants/plant_finder_controller.dart';
 import '../features/plants/plant_finder_screen.dart';
 import '../features/plan/plan_controller.dart';
 import '../features/plan/plan_screen.dart';
+import '../features/weather/weather_controller.dart';
 import '../features/settings/onboarding_screen.dart';
 import '../features/settings/settings_controller.dart';
 import '../features/settings/settings_screen.dart';
@@ -66,6 +67,15 @@ class _ShellState extends State<Shell> {
     now: widget.env.now,
   );
 
+  late final WeatherController _weather = WeatherController(
+    service: widget.env.weather,
+    location: widget.env.location,
+    now: widget.env.now,
+    readPlace: () => _settings.settings,
+    savePlace: ({place, useDeviceLocation}) =>
+        _settings.savePlace(place: place, useDeviceLocation: useDeviceLocation),
+  );
+
   late final PlantFinderController _finder = PlantFinderController(
     content: widget.content,
     now: widget.env.now,
@@ -105,6 +115,10 @@ class _ShellState extends State<Shell> {
     // when they change in Settings). One the user has already adjusted keeps
     // their choice until they ask for the defaults ("Find Native Plants").
     if (loadedNow || defaultsChanged) _finder.adoptDefaultsIfUntouched();
+    // A saved place means the weather can load; no place means it asks.
+    if (loadedNow || _lastSettings.place != s.place) {
+      unawaited(_weather.refreshIfNeeded());
+    }
     _lastSettingsState = _settings.state;
     _lastSettings = s;
     if (mounted) setState(() {});
@@ -113,6 +127,7 @@ class _ShellState extends State<Shell> {
   @override
   void dispose() {
     _settings.removeListener(_onSettingsChanged);
+    _weather.dispose();
     _finder.dispose();
     _plan.dispose();
     _settings.dispose();
@@ -125,9 +140,17 @@ class _ShellState extends State<Shell> {
   /// and any recording or result it held.)
   Future<void> _onErased() async {
     _introSkippedThisSession = false;
+    _weather.reset();
     _finder.showDefaults();
     await _plan.init();
-    if (mounted) setState(() => _index = 0);
+    if (mounted) _showTab(0);
+  }
+
+  /// Switches tab. Showing Home reloads the weather if the last reading is
+  /// over an hour old (spec 4.1: at most once an hour while the app is open).
+  void _showTab(int index) {
+    setState(() => _index = index);
+    if (index == 0) unawaited(_weather.refreshIfNeeded());
   }
 
   /// Opens the Plants tab from the user's own starting choices.
@@ -153,14 +176,15 @@ class _ShellState extends State<Shell> {
     final screens = <Widget>[
       HomeScreen(
         content: widget.content,
+        weather: _weather,
         now: widget.env.now,
-        onIdentify: () => setState(() => _index = 2),
+        onIdentify: () => _showTab(2),
         onFindPlants: _showPlants,
         onSmallSpace: () {
           _finder.showSmallSpace();
           setState(() => _index = 1);
         },
-        onMyPlan: () => setState(() => _index = 3),
+        onMyPlan: () => _showTab(3),
       ),
       PlantFinderScreen(controller: _finder, content: widget.content),
       BirdsScreen(
@@ -168,7 +192,7 @@ class _ShellState extends State<Shell> {
         content: widget.content,
         plan: _plan,
         settings: () => _settings.settings,
-        onOpenPlan: () => setState(() => _index = 3),
+        onOpenPlan: () => _showTab(3),
       ),
       PlanScreen(controller: _plan, onShowPlants: _showPlants),
       SettingsScreen(
@@ -187,7 +211,7 @@ class _ShellState extends State<Shell> {
       ),
       bottomNavigationBar: GlassNavBar(
         selectedIndex: _index,
-        onSelected: (i) => setState(() => _index = i),
+        onSelected: _showTab,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),

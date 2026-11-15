@@ -38,8 +38,9 @@ const _pages = [
   _Page(
     Icons.checklist,
     'Your plan stays with you',
-    'Your habitat plan and settings are saved on this device only. You can '
-        'see them and erase them any time in Settings.',
+    'Your habitat plan and settings are saved on this device only. The '
+        'weather card stays off until you choose a place, and you can see '
+        'or erase everything in Settings.',
   ),
 ];
 

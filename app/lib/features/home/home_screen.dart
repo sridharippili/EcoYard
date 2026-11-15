@@ -2,11 +2,14 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../app/content.dart';
 import '../../app/theme.dart';
+import '../weather/weather_card.dart';
+import '../weather/weather_controller.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
     super.key,
     required this.content,
+    required this.weather,
     required this.now,
     required this.onIdentify,
     required this.onFindPlants,
@@ -15,6 +18,10 @@ class HomeScreen extends StatelessWidget {
   });
 
   final AppContent content;
+
+  /// The weather card's state. Shown above the Identify button, as drawn in
+  /// the mockup.
+  final WeatherController weather;
 
   /// The clock; its month picks today's tip.
   final DateTime Function() now;
@@ -41,6 +48,8 @@ class HomeScreen extends StatelessWidget {
         ),
         const Text("Let's make a bird-friendly space today."),
         const SizedBox(height: 16),
+        WeatherCard(controller: weather),
+        const SizedBox(height: 12),
         _IdentifyButton(onTap: onIdentify),
         const SizedBox(height: 12),
         _TileRow(

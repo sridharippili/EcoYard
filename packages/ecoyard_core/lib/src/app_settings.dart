@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'habitat_engine.dart' show BudgetTier;
+import 'weather.dart';
 import 'models.dart';
 import 'plan.dart';
 
@@ -15,6 +16,8 @@ class AppSettings {
     this.defaultSun = SunExposure.full,
     this.defaultBudget = BudgetTier.any,
     this.onboardingDone = false,
+    this.place,
+    this.useDeviceLocation = false,
   });
 
   /// What a fresh install, or a wiped one, starts with.
@@ -28,10 +31,23 @@ class AppSettings {
   /// Whether the 3-screen introduction has been seen or skipped.
   final bool onboardingDone;
 
+  /// The place the weather is for, or null when the user has not chosen one
+  /// and has not allowed location. Always coarse (see [Place.coarse]).
+  final Place? place;
+
+  /// Whether the user let EcoYard use the device's approximate location.
+  /// False until they say yes; never assumed.
+  final bool useDeviceLocation;
+
   static const keySpace = 'defaultSpace';
   static const keySun = 'defaultSun';
   static const keyBudget = 'defaultBudget';
   static const keyOnboarded = 'onboardingDone';
+  static const keyPlaceName = 'placeName';
+  static const keyPlaceAdmin = 'placeAdmin';
+  static const keyPlaceLat = 'placeLat';
+  static const keyPlaceLon = 'placeLon';
+  static const keyUseDeviceLocation = 'useDeviceLocation';
 
   /// Reads settings from stored text. Anything unknown gets its default.
   factory AppSettings.fromMap(Map<String, String> m) {
@@ -62,6 +78,13 @@ class AppSettings {
         initial.defaultBudget,
       ),
       onboardingDone: m[keyOnboarded] == 'true',
+      place: Place.fromMap({
+        if (m[keyPlaceName] != null) 'name': m[keyPlaceName]!,
+        if (m[keyPlaceAdmin] != null) 'admin': m[keyPlaceAdmin]!,
+        if (m[keyPlaceLat] != null) 'lat': m[keyPlaceLat]!,
+        if (m[keyPlaceLon] != null) 'lon': m[keyPlaceLon]!,
+      }),
+      useDeviceLocation: m[keyUseDeviceLocation] == 'true',
     );
   }
 
@@ -70,6 +93,13 @@ class AppSettings {
         keySun: defaultSun.json,
         keyBudget: defaultBudget.json,
         keyOnboarded: onboardingDone.toString(),
+        keyUseDeviceLocation: useDeviceLocation.toString(),
+        // Every key is always written, blank when there is no place: a store
+        // that merges writes would otherwise keep an old place for ever.
+        keyPlaceName: place?.name ?? '',
+        keyPlaceAdmin: place?.admin ?? '',
+        keyPlaceLat: place?.latitude.toString() ?? '',
+        keyPlaceLon: place?.longitude.toString() ?? '',
       };
 
   AppSettings copyWith({
@@ -77,12 +107,17 @@ class AppSettings {
     SunExposure? defaultSun,
     BudgetTier? defaultBudget,
     bool? onboardingDone,
+    Place? place,
+    bool clearPlace = false,
+    bool? useDeviceLocation,
   }) =>
       AppSettings(
         defaultSpace: defaultSpace ?? this.defaultSpace,
         defaultSun: defaultSun ?? this.defaultSun,
         defaultBudget: defaultBudget ?? this.defaultBudget,
         onboardingDone: onboardingDone ?? this.onboardingDone,
+        place: clearPlace ? null : (place ?? this.place),
+        useDeviceLocation: useDeviceLocation ?? this.useDeviceLocation,
       );
 
   @override
@@ -91,11 +126,13 @@ class AppSettings {
       other.defaultSpace == defaultSpace &&
       other.defaultSun == defaultSun &&
       other.defaultBudget == defaultBudget &&
-      other.onboardingDone == onboardingDone;
+      other.onboardingDone == onboardingDone &&
+      other.place == place &&
+      other.useDeviceLocation == useDeviceLocation;
 
   @override
-  int get hashCode =>
-      Object.hash(defaultSpace, defaultSun, defaultBudget, onboardingDone);
+  int get hashCode => Object.hash(defaultSpace, defaultSun, defaultBudget,
+      onboardingDone, place, useDeviceLocation);
 }
 
 /// What "Manage my data" shows, counted from what is really stored.

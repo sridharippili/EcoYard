@@ -103,11 +103,7 @@ class SettingsScreen extends StatelessWidget {
                   'does not save it on your phone. How those services '
                   'handle it is up to them.',
             ),
-            const _Fact(
-              Icons.location_off_outlined,
-              'Location',
-              'EcoYard does not use your location.',
-            ),
+            _LocationFact(controller: controller),
             const _Fact(
               Icons.phone_iphone,
               'My plan',
@@ -173,6 +169,38 @@ class SettingsScreen extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+/// What EcoYard currently does with location: it depends on whether the
+/// user has chosen a place, so it is read from the settings rather than
+/// being a fixed sentence.
+class _LocationFact extends StatelessWidget {
+  const _LocationFact({required this.controller});
+  final SettingsController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = controller.settings;
+    final place = s.place;
+    final String body;
+    if (place == null) {
+      body =
+          'Not used. EcoYard asks only if you tap "Use my area" on the '
+          'weather card, and you can type a town instead.';
+    } else if (s.useDeviceLocation) {
+      body =
+          'Your approximate area (${place.label}), rounded to about 10 '
+          'miles, is saved on this device and sent to the weather service '
+          'to get the forecast. Your exact position is never used or '
+          'saved. Change or remove it on the weather card.';
+    } else {
+      body =
+          'You chose ${place.label}. Only that town, rounded to about 10 '
+          'miles, is sent to the weather service. Your device location is '
+          'not used.';
+    }
+    return _Fact(Icons.place_outlined, 'Location', body);
   }
 }
 

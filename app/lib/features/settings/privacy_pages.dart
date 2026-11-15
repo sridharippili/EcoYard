@@ -38,9 +38,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
             h('The short version'),
             const Text(
               'EcoYard has no account and no sign-in. Your habitat plan and '
-              'settings are saved on this device. EcoYard does not use your '
-              'location. The one thing that leaves your phone is the short '
-              'recording you choose to identify.',
+              'settings are saved on this device. Two things can leave your '
+              'phone, and only when you ask: the short recording you choose '
+              'to identify, and a rough area used to fetch the weather.',
             ),
             h('What is saved on your device'),
             const Text(
@@ -57,11 +57,21 @@ class PrivacyPolicyScreen extends StatelessWidget {
               'services handle the clip is up to them: EcoYard cannot erase '
               'it for you. EcoYard does not save the clip on your phone.',
             ),
+            h('Location and the weather'),
+            const Text(
+              'The weather card is off until you choose a place. You can '
+              'type a town, or let EcoYard use your approximate location. '
+              'Either way it is rounded to about 10 miles before it is '
+              'saved or sent, your exact position is never used, and no '
+              'history of where you have been is kept. The rounded place '
+              'goes to Open-Meteo, the weather service, with nothing that '
+              'identifies you. Remove it any time on the weather card.',
+            ),
             h('What EcoYard does not do'),
             const Text(
-              'It does not use your location, does not ask for your contacts '
-              'or photos, and does not include advertising or analytics '
-              'tools.',
+              'It does not ask for your contacts or photos, does not track '
+              'where you have been, and does not include advertising or '
+              'analytics tools.',
             ),
             h('Erasing your data'),
             const Text(
