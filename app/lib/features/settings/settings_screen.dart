@@ -1,3 +1,4 @@
+import 'package:bird_audio/bird_audio.dart' show ExportOutcome;
 import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:material_ui/material_ui.dart';
@@ -316,6 +317,29 @@ class _ManageDataScreenState extends State<ManageDataScreen> {
   late Future<DataSummary> _summary = widget.controller.summary();
   String? _copyMessage;
 
+  Future<void> _share(BuildContext context) async {
+    // iPad needs to know where to anchor the sheet.
+    final box = context.findRenderObject() as RenderBox?;
+    final origin = box == null
+        ? null
+        : box.localToGlobal(Offset.zero) & box.size;
+    try {
+      final outcome = await widget.controller.exportFile(origin: origin);
+      if (!mounted) return;
+      setState(() {
+        _copyMessage = switch (outcome) {
+          ExportOutcome.shared => 'Your data was handed to the app you chose.',
+          ExportOutcome.dismissed => null,
+          ExportOutcome.failed =>
+            "Couldn't open the share sheet. You can copy your data instead.",
+        };
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _copyMessage = "Couldn't read your data to share it.");
+    }
+  }
+
   Future<void> _copy() async {
     try {
       final text = await widget.controller.exportText();
@@ -387,6 +411,21 @@ class _ManageDataScreenState extends State<ManageDataScreen> {
                   'history.',
                 ),
                 const SizedBox(height: 16),
+                Builder(
+                  builder: (ctx) => FilledButton.icon(
+                    onPressed: () => _share(ctx),
+                    icon: const Icon(Icons.ios_share),
+                    label: const Text('Save or share my data'),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Makes a file only while you share it, and deletes it '
+                  'straight afterwards. Where it goes next depends on the '
+                  'app you pick.',
+                  style: TextStyle(fontSize: 12),
+                ),
+                const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: _copy,
                   icon: const Icon(Icons.copy),

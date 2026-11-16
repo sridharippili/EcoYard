@@ -15,6 +15,8 @@ Future<void> main() async {
   // before the user can reach Record, so it cannot touch one in progress;
   // it never throws and does not delay the first frame.
   unawaited(env.audioCache.sweep());
+  // An export file a crash left behind holds the user's data.
+  unawaited(env.exporter.sweep());
 }
 
 class EcoYardApp extends StatelessWidget {

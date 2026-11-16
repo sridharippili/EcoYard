@@ -106,6 +106,7 @@ Append one line per decision. Never delete; supersede with a new line.
 - 2026-11-16 — NOT adopted from the review: the badge text "IDENTIFIED ONLINE · AUDIO NOT KEPT". EcoYard never claims audio is not kept: nobody has audited what the NatureLM Kaggle notebook or the BirdNET Hugging Face Space store (PLAN.md 0.1). The result shows only "NatureLM · online" (the user asked to remove the longer disclosure sentence); the full disclosure is in Settings > Privacy at a glance and the policy
 - 2026-11-16 — Tab bar is five tabs (Home, Plants, Birds, My Plan, Settings), as in the mockup. Map and Score from GardenEar are NOT built and must not be restored without an explicit user decision (the old open question below is still open)
 - 2026-11-16 — Review items that need something we do not have, so they are NOT done: (a) reference-call play button on the result (needs bundled, licensed recordings per species and an audio-playback package: hidden, not a dead control); (b) share-sheet export of the data as a JSON file (needs `share_plus`, a package the user has not approved; "Copy my data" stays); (c) checking whether the Kaggle notebook persists uploaded audio to /kaggle/working (needs access to the notebook; the policy says only what EcoYard itself does); (d) the privacy policy and About still need a human review before release
+- 2026-11-16 — Approved new package `share_plus` (user said yes). "Save or share my data" writes `ecoyard-my-data-<ms>.json` to the temp folder only while the iOS share sheet is open and deletes it in `finally`; start-up and Delete-my-data also sweep leftovers. Where the file goes next depends on the app the user picks, and the copy says so. Verified on the simulator: sheet opens, no file left after dismissing.
 
 ## Open questions
 
@@ -209,3 +210,4 @@ When the Changelog passes ~40 entries, replace the oldest 20 with a
 single summary line covering that span, e.g.
 `- 2026-11-14 → 2026-12-20 — Phases 1–3 complete: packages split, content schema + resolver, habitat engine`.
 Keep recent entries detailed. Never let this file become an archive.
+- 2026-11-16 — Data export as a file through the share sheet (`share_plus`, `ShareSheetExporter`, Manage my data); review item 6 done. Pre-push gate green. [review item 6]

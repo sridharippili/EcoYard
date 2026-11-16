@@ -386,6 +386,80 @@ void main() {
     });
   });
 
+  group('Save or share my data', () {
+    Future<void> openManage(WidgetTester tester) async {
+      await tab(tester, 'Settings');
+      await openRow(tester, 'Manage my data');
+    }
+
+    testWidgets('offers the plan as a file and explains it is deleted '
+        'straight afterwards', (tester) async {
+      final st = seeded();
+      await addPlan(st);
+      final ex = FakeExporter();
+      await pumpApp(tester, fakeEnv(storage: st, exporter: ex));
+      await openManage(tester);
+      expect(find.text('Save or share my data'), findsOneWidget);
+      expect(
+        find.textContaining('deletes it straight afterwards'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Save or share my data'));
+      await tester.pumpAndSettle();
+
+      final sent = jsonDecode(ex.shared.single) as Map<String, dynamic>;
+      expect((sent['plan'] as List), hasLength(2));
+      expect(sent['notKeptOnThisDevice'], contains('audio recordings'));
+      expect(
+        find.textContaining('handed to the app you chose'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('tells the share sheet where the button is (needed on iPad)', (
+      tester,
+    ) async {
+      final ex = FakeExporter();
+      await pumpApp(tester, fakeEnv(storage: seeded(), exporter: ex));
+      await openManage(tester);
+      await tester.tap(find.text('Save or share my data'));
+      await tester.pumpAndSettle();
+      expect(ex.lastOrigin, isNotNull);
+      expect(ex.lastOrigin!.width, greaterThan(0));
+    });
+
+    testWidgets('closing the sheet without choosing says nothing, claims '
+        'nothing', (tester) async {
+      final ex = FakeExporter(outcome: ExportOutcome.dismissed);
+      await pumpApp(tester, fakeEnv(storage: seeded(), exporter: ex));
+      await openManage(tester);
+      await tester.tap(find.text('Save or share my data'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('handed to'), findsNothing);
+      expect(find.textContaining("Couldn't"), findsNothing);
+    });
+
+    testWidgets('a share sheet that cannot open says so and points to '
+        'copying', (tester) async {
+      final ex = FakeExporter(outcome: ExportOutcome.failed);
+      await pumpApp(tester, fakeEnv(storage: seeded(), exporter: ex));
+      await openManage(tester);
+      await tester.tap(find.text('Save or share my data'));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining("Couldn't open the share sheet"),
+        findsOneWidget,
+      );
+      expect(find.text('Copy my data'), findsOneWidget);
+    });
+
+    testWidgets('copying still works alongside it', (tester) async {
+      await pumpApp(tester, fakeEnv(storage: seeded()));
+      await openManage(tester);
+      expect(find.text('Copy my data'), findsOneWidget);
+    });
+  });
+
   group('Delete my data', () {
     Future<void> startDelete(WidgetTester tester) async {
       await tab(tester, 'Settings');
@@ -494,6 +568,23 @@ void main() {
       );
       expect(find.text('Hear a bird, help the yard'), findsNothing);
       expect(await st.plans.load(), hasLength(2));
+    });
+
+    testWidgets('a leftover export file is swept after a successful erase, '
+        'and not after a failed one', (tester) async {
+      final ex = FakeExporter();
+      final st = seeded();
+      await pumpApp(tester, fakeEnv(storage: st, exporter: ex));
+      await startDelete(tester);
+      st.failWipe = StateError('trap');
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      expect(ex.sweeps, 0);
+
+      await openRow(tester, 'Delete my data');
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      expect(ex.sweeps, 1);
     });
 
     testWidgets('the leftover-recording sweep runs after a successful erase '

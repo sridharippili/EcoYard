@@ -13,6 +13,7 @@ class AppEnvironment {
     required this.audioCache,
     required this.weather,
     required this.location,
+    required this.exporter,
     this.now = DateTime.now,
   });
 
@@ -26,6 +27,7 @@ class AppEnvironment {
     audioCache: AudioCache(),
     weather: OpenMeteoWeather(),
     location: const GeolocatorLocation(),
+    exporter: ShareSheetExporter(),
   );
 
   final ProviderChain chain;
@@ -49,6 +51,9 @@ class AppEnvironment {
   /// The device's approximate location, asked for only when the user taps
   /// "Use my area".
   final DeviceLocation location;
+
+  /// Offers the user's data as a file through the system share sheet.
+  final DataExporter exporter;
 
   /// The clock. Used for the month (advice) and for plan timestamps.
   final DateTime Function() now;

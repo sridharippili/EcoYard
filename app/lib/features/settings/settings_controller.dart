@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show Rect;
 
 import 'package:bird_audio/bird_audio.dart';
 import 'package:ecoyard_core/ecoyard_core.dart';
@@ -16,11 +17,13 @@ class SettingsController extends ChangeNotifier {
     required this.storage,
     required this.audio,
     required this.now,
+    required this.exporter,
   });
 
   /// Opens the shared storage (or returns it if already open).
   final Future<AppStorage> Function() storage;
   final AudioCache audio;
+  final DataExporter exporter;
   final DateTime Function() now;
 
   SettingsLoadState state = SettingsLoadState.loading;
@@ -126,6 +129,13 @@ class SettingsController extends ChangeNotifier {
     );
   }
 
+  /// Offers everything stored as a JSON file in the share sheet. Throws if
+  /// the storage cannot be read (nothing is shared in that case).
+  Future<ExportOutcome> exportFile({Rect? origin}) async {
+    final text = await exportText();
+    return exporter.export(text, origin: origin);
+  }
+
   /// Erases the plan and the settings in one step, then any recording a crash
   /// left behind. Throws (and changes nothing) if the erase failed.
   ///
@@ -139,6 +149,8 @@ class SettingsController extends ChangeNotifier {
     state = SettingsLoadState.ready;
     _notify();
     await audio.sweep();
+    // A leftover export file holds the data that was just erased.
+    await exporter.sweep();
   }
 
   void _notify() {

@@ -7,6 +7,8 @@ import 'package:ecoyard/features/settings/settings_controller.dart';
 import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'fakes.dart';
+
 PlanCandidate cand(String id) => PlanCandidate(
   actionId: id,
   title: 'Title $id',
@@ -18,6 +20,7 @@ void main() {
   late Directory tmp;
   late InMemoryAppStorage storage;
   late SettingsController c;
+  late FakeExporter exporter;
   final clock = DateTime.utc(2026, 11, 14, 9);
 
   SettingsController make([Future<AppStorage> Function()? open]) =>
@@ -25,11 +28,13 @@ void main() {
         storage: open ?? () async => storage,
         audio: AudioCache(tempDir: () async => tmp),
         now: () => clock,
+        exporter: exporter,
       );
 
   setUp(() {
     tmp = Directory.systemTemp.createTempSync('ecoyard_sc_');
     storage = InMemoryAppStorage();
+    exporter = FakeExporter();
     c = make();
   });
   tearDown(() => tmp.deleteSync(recursive: true));
@@ -303,6 +308,43 @@ void main() {
     );
   });
 
+  group('exporting as a file', () {
+    test('hands the share sheet exactly the export text', () async {
+      await storage.plans.add(
+        birdId: 'norcar',
+        actions: [cand('a1')],
+        now: clock,
+      );
+      await storage.settings.setAll(AppSettings.initial.toMap());
+      final outcome = await c.exportFile();
+      expect(outcome, ExportOutcome.shared);
+      final sent = jsonDecode(exporter.shared.single) as Map<String, dynamic>;
+      expect(sent['exportedOn'], '2026-11-14T09:00:00.000Z');
+      expect((sent['plan'] as List).single['actionId'], 'a1');
+      expect(exporter.shared.single, await c.exportText());
+    });
+
+    test('a dismissed sheet is reported as dismissed', () async {
+      exporter.outcome = ExportOutcome.dismissed;
+      expect(await c.exportFile(), ExportOutcome.dismissed);
+    });
+
+    test(
+      'if the data cannot be read, nothing is shared and it throws',
+      () async {
+        c = make(() async => throw StateError('gone'));
+        await expectLater(c.exportFile(), throwsA(anything));
+        expect(exporter.shared, isEmpty);
+      },
+    );
+
+    test('an empty app still exports a valid, empty plan', () async {
+      await c.exportFile();
+      final sent = jsonDecode(exporter.shared.single) as Map<String, dynamic>;
+      expect(sent['plan'], isEmpty);
+    });
+  });
+
   group('delete everything', () {
     File leftover() =>
         File('${tmp.path}/ecoyard_123.m4a')..writeAsBytesSync([1]);
@@ -343,6 +385,7 @@ void main() {
       storage.failWipe = StateError('trap');
 
       await expectLater(c.deleteEverything(), throwsA(anything));
+      expect(exporter.sweeps, 0, reason: 'a failed erase sweeps nothing');
 
       expect(await storage.plans.load(), hasLength(1));
       expect(

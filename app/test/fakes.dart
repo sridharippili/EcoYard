@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' show Rect;
 
 import 'package:bird_audio/bird_audio.dart';
 import 'package:ecoyard/app/app_environment.dart';
@@ -177,6 +178,29 @@ class FakeLocation implements DeviceLocation {
   }
 }
 
+/// Records what the user was offered to share. Never opens a share sheet.
+class FakeExporter implements DataExporter {
+  FakeExporter({this.outcome = ExportOutcome.shared});
+
+  ExportOutcome outcome;
+  final shared = <String>[];
+  var sweeps = 0;
+  Rect? lastOrigin;
+
+  @override
+  Future<ExportOutcome> export(String json, {Rect? origin}) async {
+    shared.add(json);
+    lastOrigin = origin;
+    return outcome;
+  }
+
+  @override
+  Future<int> sweep() async {
+    sweeps++;
+    return 0;
+  }
+}
+
 AppEnvironment fakeEnv({
   List<IdentificationProvider>? providers,
   FakeRecorder? recorder,
@@ -188,6 +212,7 @@ AppEnvironment fakeEnv({
   AudioCache? audioCache,
   WeatherService? weather,
   DeviceLocation? location,
+  DataExporter? exporter,
   bool onboarded = true,
   DateTime Function()? now,
 }) => AppEnvironment(
@@ -209,6 +234,7 @@ AppEnvironment fakeEnv({
   audioCache: audioCache ?? FakeAudioCache(),
   weather: weather ?? FakeWeather(),
   location: location ?? FakeLocation(),
+  exporter: exporter ?? FakeExporter(),
   now: now ?? fixedNow,
 );
 

@@ -19,6 +19,7 @@ export 'src/persistence/sqflite_plan_store.dart';
 export 'src/naturelm_parser.dart';
 export 'src/provider_chain.dart';
 export 'src/recorder.dart';
+export 'src/system/data_export.dart';
 export 'src/system/device_location.dart';
 export 'src/system/weather_service.dart';
 export 'src/standard_chain.dart';

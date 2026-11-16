@@ -59,6 +59,7 @@ class _ShellState extends State<Shell> {
     storage: _openStorage,
     audio: widget.env.audioCache,
     now: widget.env.now,
+    exporter: widget.env.exporter,
   );
 
   late final PlanController _plan = PlanController(
