@@ -263,7 +263,8 @@ void main() {
       expect(find.text(p.scientificName), findsOneWidget);
       // The plant now has a credited photo; the placeholder is covered in
       // photos_test.dart for a plant without one.
-      expect(find.textContaining('Photo: '), findsOneWidget);
+      expect(find.textContaining('Photo: '), findsNothing);
+      expect(find.textContaining('Photo coming soon'), findsNothing);
       expect(find.text('Birds it helps'), findsOneWidget);
       final d = finder.describe(p.id);
       for (final b in d.birds) {

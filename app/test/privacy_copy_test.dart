@@ -34,28 +34,22 @@ ProviderFailure failure(
 );
 
 void main() {
-  group('privacyBadge', () {
-    test('names the provider that actually answered', () {
-      expect(
-        privacyBadge(outcome('naturelm', 'NatureLM')),
-        contains('sent to NatureLM'),
-      );
-      expect(
-        privacyBadge(outcome('birdnet', 'BirdNET')),
-        contains('sent to BirdNET'),
-      );
+  group('privacyBadge when the audio went online', () {
+    test('there is no per-result line: it is explained once, in Settings and '
+        'the policy', () {
+      expect(privacyBadge(outcome('naturelm', 'NatureLM')), isNull);
+      expect(privacyBadge(outcome('birdnet', 'BirdNET')), isNull);
     });
 
-    test('says it was identified online, never "on your phone"', () {
-      final s = privacyBadge(outcome('naturelm', 'NatureLM'));
-      expect(s, startsWith('Identified online'));
-      expect(s.toLowerCase(), isNot(contains('on your phone')));
-    });
-
-    test('does not claim "not kept" until the services are audited', () {
-      final s = privacyBadge(outcome('birdnet', 'BirdNET')).toLowerCase();
-      expect(s, isNot(contains('not kept')));
-      expect(s, isNot(contains('deleted')));
+    test('a failed first attempt that sent the audio still gets no '
+        '"not sent" claim', () {
+      final o = outcome(
+        'birdnet-local',
+        'BirdNET on this phone',
+        sentOff: false,
+        before: [failure('naturelm')],
+      );
+      expect(privacyBadge(o), isNull);
     });
   });
 
@@ -82,8 +76,8 @@ void main() {
             before: [failure('naturelm')],
           ),
         );
-        expect(s, startsWith('Identified online'));
-        expect(s.toLowerCase(), isNot(contains('not sent')));
+        // The audio left the phone, so there is no "not sent" claim at all.
+        expect(s, isNull);
       },
     );
 

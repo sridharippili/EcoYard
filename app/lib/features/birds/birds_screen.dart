@@ -240,19 +240,8 @@ class _ResultCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (photo != null) ...[
-              SpeciesPhoto(
-                credit: photo,
-                width: double.infinity,
-                height: 180,
-                radius: 14,
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 4, bottom: 10),
-                child: Text(
-                  'Photo: ${photo!.author} (${photo!.licence})',
-                  style: const TextStyle(fontSize: 11, color: Colors.black54),
-                ),
-              ),
+              SpeciesPhoto.hero(credit: photo),
+              const SizedBox(height: 12),
             ],
             const Text(
               'POSSIBLE MATCH',
@@ -301,26 +290,29 @@ class _ResultCard extends StatelessWidget {
                   style: const TextStyle(color: Colors.black87),
                 ),
             ],
-            const SizedBox(height: 12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  o.audioLeftDevice
-                      ? Icons.cloud_upload_outlined
-                      : Icons.phone_iphone,
-                  size: 16,
-                  color: Colors.black54,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    privacyBadge(o),
-                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+            if (privacyBadge(o) case final badge?) ...[
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.phone_iphone,
+                    size: 16,
+                    color: Colors.black54,
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      badge,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
             if (note != null) ...[
               const SizedBox(height: 4),
               Text(

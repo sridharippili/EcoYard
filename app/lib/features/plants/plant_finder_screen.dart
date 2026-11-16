@@ -289,11 +289,13 @@ class PlantPhotoPlaceholder extends StatelessWidget {
   final PhotoCredit? credit;
 
   @override
-  Widget build(BuildContext context) => SpeciesPhoto(
-    credit: credit,
-    width: double.infinity,
-    height: 180,
-    radius: 16,
-    placeholderLabel: 'Photo coming soon',
-  );
+  Widget build(BuildContext context) => credit == null
+      ? SpeciesPhoto(
+          credit: null,
+          width: double.infinity,
+          height: 180,
+          radius: 16,
+          placeholderLabel: 'Photo coming soon',
+        )
+      : SpeciesPhoto.hero(credit: credit, radius: 16);
 }

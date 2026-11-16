@@ -16,8 +16,10 @@ int photoCount(WidgetTester tester) => tester
     .where((i) => i.image is AssetImage)
     .length;
 
+final content = realAppContent();
+
 void main() {
-  final content = realAppContent();
+  heroLayoutTests();
 
   testWidgets('plant cards show their photo, and name the photographer on '
       'the detail screen', (tester) async {
@@ -26,23 +28,20 @@ void main() {
     expect(photoCount(tester), greaterThan(0));
 
     final p = content.repo.plantById('black-eyed-susan')!;
-    final credit = content.photos.forPlant(p.id)!;
     await tester.scrollUntilVisible(find.text(p.commonName), 200);
     await tester.tap(find.text(p.commonName));
     await tester.pumpAndSettle();
-    expect(
-      find.text('Photo: ${credit.author} (${credit.licence})'),
-      findsOneWidget,
-    );
+    // The photo shows; its credit lives in Settings > About > Photo credits.
+    expect(photoCount(tester), greaterThan(0));
+    expect(find.textContaining('Photo: '), findsNothing);
     expect(find.text('Photo coming soon'), findsNothing);
   });
 
   testWidgets('an identified bird gets its photo and credit', (tester) async {
     await pumpApp(tester, fakeEnv(providers: [answering('Northern Cardinal')]));
     await recordAndStop(tester);
-    final credit = content.photos.forBird('norcar')!;
     expect(photoCount(tester), greaterThan(0));
-    expect(find.textContaining('Photo: ${credit.author}'), findsOneWidget);
+    expect(find.textContaining('Photo: '), findsNothing);
   });
 
   testWidgets('a bird we have no photo for shows no photo and no credit', (
@@ -128,5 +127,86 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.byIcon(Icons.eco), findsOneWidget);
+  });
+}
+
+/// How the hero photo is laid out: it must keep its own shape, so a portrait
+/// bird is not cut to a wide strip (the cardinal showed only its belly).
+void heroLayoutTests() {
+  group('hero photo layout', () {
+    PhotoCredit credit(int w, int h) => PhotoCredit(
+      id: 'x',
+      kind: 'bird',
+      asset: 'assets/photos/bird-norcar.jpg',
+      author: 'A',
+      licence: 'CC BY 4.0',
+      licenceUrl: '',
+      sourceUrl: '',
+      width: w,
+      height: h,
+    );
+
+    test('a portrait bird is not forced into a wide box', () {
+      // 533x700 is the real cardinal: ratio 0.76.
+      expect(heroAspect(credit(533, 700)), greaterThanOrEqualTo(0.8));
+      expect(
+        heroAspect(credit(533, 700)),
+        lessThan(1.0),
+        reason: 'still portrait-ish, not a 340x180 strip (1.9)',
+      );
+    });
+
+    test('a landscape photo keeps its shape within limits', () {
+      expect(heroAspect(credit(700, 563)), closeTo(1.24, 0.01));
+      expect(heroAspect(credit(1400, 400)), 1.6, reason: 'capped');
+    });
+
+    test('an unknown size falls back to a sensible shape', () {
+      expect(heroAspect(null), inInclusiveRange(0.8, 1.6));
+      const noSize = PhotoCredit(
+        id: 'x',
+        kind: 'bird',
+        asset: 'a.jpg',
+        author: 'A',
+        licence: 'L',
+        licenceUrl: '',
+        sourceUrl: '',
+      );
+      expect(heroAspect(noSize), inInclusiveRange(0.8, 1.6));
+    });
+
+    test('every shipped bird photo is shown mostly whole: at most a sliver '
+        'is cropped', () {
+      for (final c in content.photos.all) {
+        final real = c.aspectRatio!;
+        final shown = heroAspect(c);
+        // Fraction of the picture's area that stays visible when covered
+        // into the shown aspect.
+        final visible = real > shown ? shown / real : real / shown;
+        expect(
+          visible,
+          greaterThan(0.78),
+          reason: '${c.id}: ${(100 - visible * 100).round()}% cut off',
+        );
+      }
+    });
+
+    testWidgets('on screen the photo is as tall as its shape says, not a '
+        'fixed 180', (tester) async {
+      await pumpApp(
+        tester,
+        fakeEnv(providers: [answering('Northern Cardinal')]),
+      );
+      await recordAndStop(tester);
+      final hero = find.byType(AspectRatio).first;
+      final size = tester.getSize(hero);
+      final want = heroAspect(content.photos.forBird('norcar'));
+      expect(size.width / size.height, closeTo(want, 0.02));
+      expect(
+        size.height,
+        greaterThan(180),
+        reason: 'a portrait bird needs more than the old strip',
+      );
+    });
   });
 }

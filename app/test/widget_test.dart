@@ -34,7 +34,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Northern Cardinal'), findsOneWidget);
-    expect(find.textContaining('sent to NatureLM'), findsOneWidget);
+    // The online disclosure lives in Settings, not on every result.
+    expect(find.textContaining('sent to NatureLM'), findsNothing);
+    expect(find.textContaining('Identified online'), findsNothing);
     expect(
       find.textContaining('Confidence'),
       findsNothing,

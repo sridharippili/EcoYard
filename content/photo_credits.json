@@ -16,7 +16,9 @@
       "author": "Rodney Campbell",
       "licence": "CC BY 2.0",
       "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Carduelis_tristis_-Michigan,_USA_-male-8.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Carduelis_tristis_-Michigan,_USA_-male-8.jpg",
+      "width": 700,
+      "height": 565
     },
     {
       "id": "amerob",
@@ -26,7 +28,9 @@
       "author": "Rhododendrites",
       "licence": "CC BY-SA 4.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:American_robin_(71307).jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:American_robin_(71307).jpg",
+      "width": 700,
+      "height": 525
     },
     {
       "id": "bkcchi",
@@ -36,7 +40,9 @@
       "author": "No machine-readable author provided. Mdf assumed (based on copyright claims).",
       "licence": "CC BY-SA 3.0",
       "licenceUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Poecile-atricapilla-001.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Poecile-atricapilla-001.jpg",
+      "width": 700,
+      "height": 700
     },
     {
       "id": "blujay",
@@ -46,7 +52,9 @@
       "author": "Rhododendrites",
       "licence": "CC BY-SA 4.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Blue_jay_in_PP_(30960).jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Blue_jay_in_PP_(30960).jpg",
+      "width": 513,
+      "height": 700
     },
     {
       "id": "carwre",
@@ -56,7 +64,9 @@
       "author": "Rhododendrites",
       "licence": "CC BY-SA 4.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Carolina_wren_(14391).jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Carolina_wren_(14391).jpg",
+      "width": 700,
+      "height": 545
     },
     {
       "id": "dowwoo",
@@ -66,7 +76,9 @@
       "author": "Cephas",
       "licence": "CC BY-SA 4.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dryobates_pubescens_UL_03.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dryobates_pubescens_UL_03.jpg",
+      "width": 700,
+      "height": 700
     },
     {
       "id": "norcar",
@@ -76,7 +88,9 @@
       "author": "Rhododendrites",
       "licence": "CC BY-SA 4.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Male_northern_cardinal_in_Central_Park_(52612).jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Male_northern_cardinal_in_Central_Park_(52612).jpg",
+      "width": 533,
+      "height": 700
     },
     {
       "id": "rthhum",
@@ -86,7 +100,9 @@
       "author": "jeffreyw",
       "licence": "CC BY 2.0",
       "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Archilochus_colubris_-flying_-male-8.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Archilochus_colubris_-flying_-male-8.jpg",
+      "width": 638,
+      "height": 700
     },
     {
       "id": "tuftit",
@@ -96,7 +112,9 @@
       "author": "Rhododendrites",
       "licence": "CC BY-SA 4.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tufted_titmouse_(84917).jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tufted_titmouse_(84917).jpg",
+      "width": 700,
+      "height": 510
     },
     {
       "id": "whbnut",
@@ -106,7 +124,9 @@
       "author": "Rhododendrites",
       "licence": "CC BY-SA 4.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:White-breasted_nuthatch_(26471).jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:White-breasted_nuthatch_(26471).jpg",
+      "width": 700,
+      "height": 526
     },
     {
       "id": "american-holly",
@@ -116,7 +136,9 @@
       "author": "Unknown",
       "licence": "Public domain",
       "licenceUrl": "",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ilex_opaca_USDA.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ilex_opaca_USDA.jpg",
+      "width": 700,
+      "height": 475
     },
     {
       "id": "arrowwood-viburnum",
@@ -126,7 +148,9 @@
       "author": "Ted Bodner, Southern Weed Science Society/James H. Miller, USDA Forest Service",
       "licence": "CC BY 3.0 us",
       "licenceUrl": "https://creativecommons.org/licenses/by/3.0/us/deed.en",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Viburnum_dentatum_flowers.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Viburnum_dentatum_flowers.jpg",
+      "width": 475,
+      "height": 700
     },
     {
       "id": "black-chokeberry",
@@ -136,7 +160,9 @@
       "author": "manfred.sause@volloeko.de",
       "licence": "CC BY-SA 3.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Aronia_melanocarpa_cv_Rubina_P1020524.JPG"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Aronia_melanocarpa_cv_Rubina_P1020524.JPG",
+      "width": 525,
+      "height": 700
     },
     {
       "id": "black-eyed-susan",
@@ -146,7 +172,9 @@
       "author": "Krzysztof Ziarnek, Kenraiz",
       "licence": "CC BY-SA 4.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rudbeckia_hirta_kz03.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rudbeckia_hirta_kz03.jpg",
+      "width": 700,
+      "height": 500
     },
     {
       "id": "cardinal-flower",
@@ -156,7 +184,9 @@
       "author": "Barnes, Dr. Thomas G.",
       "licence": "Public domain",
       "licenceUrl": "",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lobelia_cardinalis_-_Cardinal_Flower.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lobelia_cardinalis_-_Cardinal_Flower.jpg",
+      "width": 448,
+      "height": 700
     },
     {
       "id": "common-winterberry",
@@ -166,7 +196,9 @@
       "author": "User:SB_Johnny",
       "licence": "CC BY-SA 3.0",
       "licenceUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ilex_verticillata_fruits_and_foliage_1.JPG"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ilex_verticillata_fruits_and_foliage_1.JPG",
+      "width": 700,
+      "height": 525
     },
     {
       "id": "eastern-red-cedar",
@@ -176,7 +208,9 @@
       "author": "Famartin",
       "licence": "CC BY-SA 3.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:2014-05-13_08_32_55_Eastern_Red_Cedar_at_South_Riding_Golf_Club_in_South_Riding,_Virginia.JPG"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:2014-05-13_08_32_55_Eastern_Red_Cedar_at_South_Riding_Golf_Club_in_South_Riding,_Virginia.JPG",
+      "width": 525,
+      "height": 700
     },
     {
       "id": "flowering-dogwood",
@@ -186,7 +220,9 @@
       "author": "Eric Hunt",
       "licence": "CC BY-SA 4.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cornus_florida_Arkansas.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cornus_florida_Arkansas.jpg",
+      "width": 700,
+      "height": 525
     },
     {
       "id": "new-england-aster",
@@ -196,7 +232,9 @@
       "author": "The Cosmonaut",
       "licence": "CC BY-SA 2.5 ca",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/2.5/ca/deed.en",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Symphyotrichum_novae-angliae3.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Symphyotrichum_novae-angliae3.jpg",
+      "width": 622,
+      "height": 700
     },
     {
       "id": "northern-spicebush",
@@ -206,7 +244,9 @@
       "author": "Jason Hollinger",
       "licence": "CC BY 2.0",
       "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Spicebush_(4506720062).jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Spicebush_(4506720062).jpg",
+      "width": 466,
+      "height": 700
     },
     {
       "id": "purple-coneflower",
@@ -216,7 +256,9 @@
       "author": "Eric Hunt",
       "licence": "CC BY-SA 4.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Echinacea_purpurea_Grandview_Prairie.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Echinacea_purpurea_Grandview_Prairie.jpg",
+      "width": 560,
+      "height": 700
     },
     {
       "id": "serviceberry",
@@ -226,7 +268,9 @@
       "author": "Rasbak",
       "licence": "CC BY-SA 3.0",
       "licenceUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Amelanchier_canadensis_flower.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Amelanchier_canadensis_flower.jpg",
+      "width": 700,
+      "height": 561
     },
     {
       "id": "trumpet-honeysuckle",
@@ -236,7 +280,9 @@
       "author": "Eric Hunt",
       "licence": "CC BY-SA 4.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lonicera_sempervirens_2.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lonicera_sempervirens_2.jpg",
+      "width": 466,
+      "height": 700
     },
     {
       "id": "virginia-creeper",
@@ -246,7 +292,9 @@
       "author": "Linnaeus",
       "licence": "CC BY-SA 3.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Virginia_creeper_Parthenocissus_quinquifolia_169.JPG"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Virginia_creeper_Parthenocissus_quinquifolia_169.JPG",
+      "width": 700,
+      "height": 525
     },
     {
       "id": "white-oak",
@@ -256,7 +304,9 @@
       "author": "Marty Aligata at English Wikipedia",
       "licence": "CC BY-SA 3.0",
       "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Keeler_Oak_Tree_-_distance_photo,_May_2013.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Keeler_Oak_Tree_-_distance_photo,_May_2013.jpg",
+      "width": 700,
+      "height": 563
     }
   ]
 }

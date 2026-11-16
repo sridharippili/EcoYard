@@ -6,13 +6,17 @@ import 'package:bird_audio/bird_audio.dart';
 ///
 /// It deliberately does NOT say the services do not keep the audio. Nobody
 /// has audited the Kaggle notebook or the Hugging Face Space (PLAN.md 0.1).
-String privacyBadge(ChainOutcome o) {
+///
+/// Returns null when the audio left the phone: that is explained once, in
+/// Settings > Privacy at a glance and in the policy, rather than repeated on
+/// every result. It still says so, honestly and only when true, when the
+/// recording stayed on the phone.
+String? privacyBadge(ChainOutcome o) {
   if (!o.audioLeftDevice) {
     // Only when the on-device model answered and nothing was uploaded first.
     return 'Identified on this phone. The recording was not sent anywhere.';
   }
-  return 'Identified online. Audio was sent to ${o.result.providerLabel} '
-      'for analysis.';
+  return null;
 }
 
 /// Explains a fall-through, or null when the first provider answered.

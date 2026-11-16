@@ -10,6 +10,8 @@ class PhotoCredit {
     required this.licence,
     required this.licenceUrl,
     required this.sourceUrl,
+    this.width,
+    this.height,
   });
 
   /// The bird or plant id this photo belongs to.
@@ -27,6 +29,17 @@ class PhotoCredit {
 
   /// The Wikimedia page the photo came from.
   final String sourceUrl;
+
+  /// Pixel size of the shipped file, when known.
+  final int? width;
+  final int? height;
+
+  /// Width divided by height, or null when the size is unknown.
+  double? get aspectRatio {
+    final w = width, h = height;
+    if (w == null || h == null || w <= 0 || h <= 0) return null;
+    return w / h;
+  }
 
   bool get isBird => kind == 'bird';
 }
@@ -59,6 +72,8 @@ class PhotoCredits {
             licence: _text(row, 'licence'),
             licenceUrl: row['licenceUrl'] as String? ?? '',
             sourceUrl: row['sourceUrl'] as String? ?? '',
+            width: (row['width'] as num?)?.toInt(),
+            height: (row['height'] as num?)?.toInt(),
           ),
     ]);
   }
