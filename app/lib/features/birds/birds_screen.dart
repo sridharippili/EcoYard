@@ -2,7 +2,9 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_environment.dart';
 
-import 'package:ecoyard_core/ecoyard_core.dart' show AppSettings, PhotoCredit;
+import 'package:bird_audio/bird_audio.dart' show Detection;
+import 'package:ecoyard_core/ecoyard_core.dart'
+    show AppSettings, MatchConfidence, PhotoCredit, SpeciesMatch;
 
 import '../../app/content.dart';
 import '../../app/theme.dart';
@@ -40,6 +42,12 @@ class _BirdsScreenState extends State<BirdsScreen> {
   late final BirdsController _c = BirdsController(
     recorder: widget.env.newRecorder(),
     chain: widget.env.chain,
+  );
+
+  SpeciesMatch _matchFor(Detection d) => widget.content.resolver.resolve(
+    rawName: d.speciesText,
+    scientificName: d.scientificName,
+    confidence: d.confidence,
   );
 
   @override
@@ -88,6 +96,7 @@ class _BirdsScreenState extends State<BirdsScreen> {
           switch (_c.phase) {
             BirdsPhase.result => _ResultCard(
               controller: _c,
+              match: _matchFor(_c.outcome!.result.top),
               photo: BirdDetailsPanel.photoFor(
                 widget.content,
                 _c.outcome!.result.top,
@@ -213,15 +222,27 @@ class _RecordButton extends StatelessWidget {
   }
 }
 
+/// The words for how much to trust a match, from BOTH the provider's score
+/// and how the name was matched (a fuzzy match at 0.9 is never "high").
+String confidenceLabel(MatchConfidence c) => switch (c) {
+  MatchConfidence.high => 'HIGH CONFIDENCE',
+  MatchConfidence.medium => 'MEDIUM CONFIDENCE',
+  MatchConfidence.low => 'LOW CONFIDENCE',
+};
+
 class _ResultCard extends StatelessWidget {
   const _ResultCard({
     required this.controller,
     required this.details,
     required this.photo,
+    required this.match,
   });
   final BirdsController controller;
   final Widget details;
   final PhotoCredit? photo;
+
+  /// What the species resolver made of the top answer.
+  final SpeciesMatch match;
 
   @override
   Widget build(BuildContext context) {
@@ -243,9 +264,9 @@ class _ResultCard extends StatelessWidget {
               SpeciesPhoto.hero(credit: photo),
               const SizedBox(height: 12),
             ],
-            const Text(
-              'POSSIBLE MATCH',
-              style: TextStyle(
+            Text(
+              'POSSIBLE MATCH · ${confidenceLabel(match.confidence)}',
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.5,
@@ -254,15 +275,21 @@ class _ResultCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              top.speciesText,
+              // The species we resolved to, so a mis-heard "cardinal" shows
+              // as what it was matched to; the provider's own words when it
+              // is a species we have no content for.
+              match.isResolved ? match.commonName! : top.speciesText,
               style: text.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: Colors.black87,
               ),
             ),
-            if (top.scientificName != null)
+            // From the resolved species when we have it: NatureLM gives no
+            // scientific name, and "Cardinal" alone is ambiguous.
+            if ((match.scientificName ?? top.scientificName) case final sci?
+                when sci.isNotEmpty)
               Text(
-                top.scientificName!,
+                sci,
                 style: const TextStyle(
                   fontStyle: FontStyle.italic,
                   color: Colors.black54,
@@ -289,6 +316,28 @@ class _ResultCard extends StatelessWidget {
                   d.speciesText,
                   style: const TextStyle(color: Colors.black87),
                 ),
+            ],
+            if (o.audioLeftDevice) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.cloud_outlined,
+                    size: 16,
+                    color: Colors.black54,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '${o.result.providerLabel} · online',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
             if (privacyBadge(o) case final badge?) ...[
               const SizedBox(height: 12),

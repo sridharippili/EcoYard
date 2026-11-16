@@ -202,9 +202,19 @@ class _EmptyState extends StatelessWidget {
           '${controller.budget == BudgetTier.free ? ' for free' : ''}. '
           'Try another space or amount of sun.';
     }
+    final fix = controller.suggestRelaxation();
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Text(message),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(message),
+          if (fix != null) ...[
+            const SizedBox(height: 8),
+            FilledButton.tonal(onPressed: fix.apply, child: Text(fix.label)),
+          ],
+        ],
+      ),
     );
   }
 }

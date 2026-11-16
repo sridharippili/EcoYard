@@ -194,7 +194,11 @@ class _ShellState extends State<Shell> {
         settings: () => _settings.settings,
         onOpenPlan: () => _showTab(3),
       ),
-      PlanScreen(controller: _plan, onShowPlants: _showPlants),
+      PlanScreen(
+        controller: _plan,
+        onShowPlants: _showPlants,
+        onIdentify: () => _showTab(2),
+      ),
       SettingsScreen(
         controller: _settings,
         content: widget.content,

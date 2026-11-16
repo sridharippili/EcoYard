@@ -83,6 +83,62 @@ class PlantFinderController extends ChangeNotifier {
     budget = d.defaultBudget;
   });
 
+  /// When nothing fits, the smallest single change that would find plants:
+  /// a different budget first, then sun, then space; failing that, a reset to
+  /// the user's defaults. Null when nothing helps (or something already fits).
+  ({String label, VoidCallback apply})? suggestRelaxation() {
+    if (result.plants.isNotEmpty) return null;
+    bool fits(SpaceType sp, SunExposure su, BudgetTier b) => _finder
+        .find(PlantFilter(space: sp, sun: su, budget: b))
+        .plants
+        .isNotEmpty;
+
+    if (budget != BudgetTier.any && fits(space, sun, BudgetTier.any)) {
+      return (
+        label: 'Show plants at any budget',
+        apply: () => setBudget(BudgetTier.any),
+      );
+    }
+    for (final su in SunExposure.values) {
+      if (su != sun && fits(space, su, budget)) {
+        return (
+          label: 'Show plants for ${_sunWords(su)}',
+          apply: () => setSun(su),
+        );
+      }
+    }
+    for (final sp in SpaceType.values) {
+      if (sp != space && fits(sp, sun, budget)) {
+        return (
+          label: 'Show plants for ${_spaceWords(sp)}',
+          apply: () => setSpace(sp),
+        );
+      }
+    }
+    // Two filters are in the way (for example "Free only" on a narrow
+    // space and sun): start again from the user's own defaults, if those fit.
+    final d = _settings();
+    if (fits(d.defaultSpace, d.defaultSun, d.defaultBudget) &&
+        (d.defaultSpace != space ||
+            d.defaultSun != sun ||
+            d.defaultBudget != budget)) {
+      return (label: 'Reset the filters', apply: showDefaults);
+    }
+    return null;
+  }
+
+  static String _sunWords(SunExposure s) => switch (s) {
+    SunExposure.full => 'full sun',
+    SunExposure.partial => 'part shade',
+    SunExposure.shade => 'shade',
+  };
+
+  static String _spaceWords(SpaceType s) => switch (s) {
+    SpaceType.yard => 'a yard',
+    SpaceType.balcony => 'a balcony',
+    SpaceType.containers => 'containers',
+  };
+
   void _set(VoidCallback change) {
     change();
     _recompute();

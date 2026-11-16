@@ -12,9 +12,13 @@ class PlanScreen extends StatelessWidget {
     super.key,
     required this.controller,
     required this.onShowPlants,
+    required this.onIdentify,
   });
 
   final PlanController controller;
+
+  /// Opens the Birds tab, to identify a bird and build a plan from it.
+  final VoidCallback onIdentify;
 
   /// Opens the Plants tab (for actions that mention plants).
   final VoidCallback onShowPlants;
@@ -82,12 +86,28 @@ class PlanScreen extends StatelessWidget {
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
         ),
-      if (view.items.isEmpty)
+      if (view.items.isEmpty) ...[
         const Text(
           'Nothing here yet. Identify a bird, then choose "Add these to my '
           'plan" to start.',
-        )
-      else ...[
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            FilledButton.icon(
+              onPressed: onIdentify,
+              icon: const Icon(Icons.mic, size: 18),
+              label: const Text('Identify a bird'),
+            ),
+            OutlinedButton(
+              onPressed: onShowPlants,
+              child: const Text('Find native plants'),
+            ),
+          ],
+        ),
+      ] else ...[
         _ProgressCard(progress: view.progress),
         const SizedBox(height: 8),
         for (final item in view.items)
