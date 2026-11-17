@@ -33,7 +33,74 @@ Future<void> tab(WidgetTester tester, String name) async {
   await tester.pumpAndSettle();
 }
 
+/// The card has a light blue background, so its text and icons must be dark
+/// whatever the phone's theme is. (On a phone in dark mode the default text
+/// colour is near-white, which was unreadable on the light blue.)
+double textLuminance(WidgetTester tester, Finder f) {
+  final c = DefaultTextStyle.of(tester.element(f)).style.color;
+  return (c ?? const Color(0xFFFFFFFF)).computeLuminance();
+}
+
+double iconLuminance(WidgetTester tester, Finder f) {
+  final c = IconTheme.of(tester.element(f)).color;
+  return (c ?? const Color(0xFFFFFFFF)).computeLuminance();
+}
+
 void main() {
+  group('readable in dark mode', () {
+    setUp(() {});
+
+    testWidgets('asking for a place: dark text on the light card', (
+      tester,
+    ) async {
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+      await pumpApp(tester, fakeEnv());
+      expect(textLuminance(tester, find.text('Weather')), lessThan(0.2));
+      expect(
+        textLuminance(tester, find.textContaining('approximate location')),
+        lessThan(0.2),
+      );
+    });
+
+    testWidgets('the EcoYard title is light on the dark screen', (
+      tester,
+    ) async {
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+      await pumpApp(tester, fakeEnv());
+      final colour = tester.widget<Text>(find.text('EcoYard')).style?.color;
+      expect(
+        colour!.computeLuminance(),
+        greaterThan(0.2),
+        reason: 'dark green on near-black was hard to see',
+      );
+    });
+
+    testWidgets('showing the weather: dark text and icons on the light card', (
+      tester,
+    ) async {
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+      await pumpApp(
+        tester,
+        fakeEnv(
+          storage: storage(settings: placeSettings(nj)),
+          weather: FakeWeather(),
+        ),
+      );
+      expect(textLuminance(tester, find.textContaining('°F')), lessThan(0.2));
+      expect(
+        textLuminance(tester, find.textContaining('Basking Ridge')),
+        lessThan(0.2),
+      );
+      expect(
+        iconLuminance(tester, find.byIcon(Icons.place_outlined)),
+        lessThan(0.2),
+      );
+    });
+  });
+
   group('before a place is chosen', () {
     testWidgets('it offers a choice and asks for nothing', (tester) async {
       final w = FakeWeather();

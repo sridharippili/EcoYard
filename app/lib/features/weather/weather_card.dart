@@ -30,28 +30,36 @@ class WeatherCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: controller,
-      builder: (context, _) => Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: EcoColors.water,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: switch (controller.state) {
-          WeatherState.noPlace => _AskForPlace(controller: controller),
-          WeatherState.loading => const Row(
-            children: [
-              SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              SizedBox(width: 12),
-              Text('Getting the weather...'),
-            ],
+      // The card is always light blue, so what is drawn on it uses the light
+      // theme even when the phone is in dark mode.
+      builder: (context, _) => Theme(
+        data: ecoTheme(Brightness.light),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: EcoColors.water,
+            borderRadius: BorderRadius.circular(16),
           ),
-          WeatherState.failed => _Failed(controller: controller),
-          WeatherState.ready => _Ready(controller: controller),
-        },
+          child: Material(
+            type: MaterialType.transparency,
+            child: switch (controller.state) {
+              WeatherState.noPlace => _AskForPlace(controller: controller),
+              WeatherState.loading => const Row(
+                children: [
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  SizedBox(width: 12),
+                  Text('Getting the weather...'),
+                ],
+              ),
+              WeatherState.failed => _Failed(controller: controller),
+              WeatherState.ready => _Ready(controller: controller),
+            },
+          ),
+        ),
       ),
     );
   }

@@ -71,17 +71,18 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The theme's primary green is dark on a light screen and light on a dark
+    // one, so the title is readable in both.
+    final green = Theme.of(context).colorScheme.primary;
     return Row(
       children: [
-        const Icon(Icons.eco, color: EcoColors.forest),
+        Icon(Icons.eco, color: green),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             'EcoYard',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: EcoColors.forest,
-              fontWeight: FontWeight.w700,
-            ),
+            style: Theme.of(context).textTheme.headlineSmall
+                ?.copyWith(color: green, fontWeight: FontWeight.w700),
           ),
         ),
       ],
