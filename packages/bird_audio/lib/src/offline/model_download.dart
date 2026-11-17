@@ -117,7 +117,12 @@ class ModelStore {
         throw const ModelDownloadException('The download was redirected away '
             'from https');
       }
-      final length = response.contentLength;
+      // When the server compresses the transfer, Content-Length is the
+      // compressed size while the client hands us the decompressed bytes, so
+      // it says nothing about the file. The byte count and checksum still do.
+      final encoding = response.headers['content-encoding']?.toLowerCase();
+      final compressed = encoding != null && encoding != 'identity';
+      final length = compressed ? null : response.contentLength;
       if (length != null && length != spec.bytes) {
         throw ModelDownloadException(
           'The file is $length bytes, expected ${spec.bytes}',

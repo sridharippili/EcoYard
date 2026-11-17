@@ -22,6 +22,7 @@ class FakeClient extends http.BaseClient {
     this.finalUrl,
     this.onChunk,
     this.throwOnSend,
+    this.headers = const {},
   });
 
   final List<int> body;
@@ -33,6 +34,7 @@ class FakeClient extends http.BaseClient {
   final Uri? finalUrl;
   final FutureOr<void> Function(int sent)? onChunk;
   final Object? throwOnSend;
+  final Map<String, String> headers;
 
   int sends = 0;
 
@@ -67,6 +69,7 @@ class FakeClient extends http.BaseClient {
       status,
       contentLength: omitContentLength ? null : (contentLength ?? body.length),
       request: http.Request('GET', finalUrl ?? request.url),
+      headers: headers,
     );
   }
 }
@@ -168,6 +171,21 @@ void main() {
         'downloading', () async {
       final client = FakeClient(body: payload, contentLength: 999999);
       await expectFails(client, spec(), message: contains('999999 bytes'));
+    });
+
+    test(
+        'a compressed transfer: Content-Length is the compressed size, the '
+        'saved bytes are the full file, and it is accepted', () async {
+      // Seen for real on raw.githubusercontent.com: the labels file arrives
+      // gzip-compressed (76,902 bytes on the wire) and is decompressed by the
+      // HTTP client to the exact 259,740 bytes we expect.
+      final client = FakeClient(
+        body: payload,
+        contentLength: 321,
+        headers: const {'content-encoding': 'gzip'},
+      );
+      await store(client).download(spec());
+      expect(out().readAsBytesSync(), payload);
     });
 
     test('a body longer than expected is stopped mid-stream', () async {

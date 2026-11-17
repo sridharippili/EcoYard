@@ -15,14 +15,14 @@
     {
       "role": "model",
       "name": "birdnet-2.4-fp32.tflite",
-      "url": "",
+      "url": "https://github.com/birdnet-team/BirdNET-Analyzer/raw/v1.5.1/birdnet_analyzer/checkpoints/V2.4/BirdNET_GLOBAL_6K_V2.4_Model_FP32.tflite",
       "bytes": 51726412,
       "sha256": "55f3e4055b1a13bfa9a2452731d0d34f6a02d6b775a334362665892794165e4c"
     },
     {
       "role": "labels",
       "name": "birdnet-2.4-fp32-labels.txt",
-      "url": "",
+      "url": "https://github.com/birdnet-team/BirdNET-Analyzer/raw/v1.5.1/birdnet_analyzer/checkpoints/V2.4/BirdNET_GLOBAL_6K_V2.4_Labels.txt",
       "bytes": 259740,
       "sha256": "b50b77b7c3dfe40cd637e8cccdca0173a0a4ddee8867b830ff3c1a566f477f16"
     }
