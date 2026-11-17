@@ -33,7 +33,8 @@ const _pages = [
     'Your microphone, only when you ask',
     'EcoYard asks to use the microphone the first time you tap Record, and '
         'only listens while you record. The short clip is sent online to '
-        'identify the bird. EcoYard does not save it on your phone.',
+        'identify the bird, unless you download the offline model in '
+        'Settings. EcoYard does not save it on your phone.',
   ),
   _Page(
     Icons.checklist,

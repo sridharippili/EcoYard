@@ -9,7 +9,9 @@ import 'app/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final env = AppEnvironment.live();
+  final env = AppEnvironment.live(
+    offlineConfig: await loadOfflineModelConfig(),
+  );
   runApp(EcoYardApp(env: env));
   // Remove a recording a crash may have left behind. Started right away,
   // before the user can reach Record, so it cannot touch one in progress;

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' show Rect;
@@ -243,6 +244,110 @@ class FakeReminders implements ReminderScheduler {
   }
 }
 
+/// An offline model that never touches disk, network or TFLite.
+class FakeOffline implements OfflineModel {
+  FakeOffline({
+    this.ready = false,
+    OfflineModelConfig? config,
+    this.provider = const _NoLocal(),
+  }) : config = config ?? downloadableConfig;
+
+  /// A configuration with both addresses filled in.
+  static const downloadableConfig = OfflineModelConfig(
+    modelVersion: 'v1',
+    sampleRate: 48000,
+    minTailSeconds: 1,
+    topN: 5,
+    scoreFloor: 0.25,
+    files: [
+      OfflineFile(
+        role: 'model',
+        name: 'v1.tflite',
+        url: 'https://h.test/m',
+        bytes: 51726412,
+        sha256: 'a',
+      ),
+      OfflineFile(
+        role: 'labels',
+        name: 'v1-labels.txt',
+        url: 'https://h.test/l',
+        bytes: 259740,
+        sha256: 'b',
+      ),
+    ],
+  );
+
+  @override
+  final OfflineModelConfig config;
+  @override
+  final IdentificationProvider provider;
+
+  bool ready;
+  var downloads = 0;
+  var removes = 0;
+  var closes = 0;
+  var sweeps = 0;
+
+  /// Set to make the next download fail, or hold it open until completed.
+  Object? failDownload;
+  Completer<void>? hold;
+  bool removeOk = true;
+  CancelToken? lastCancel;
+  void Function(int, int?)? lastProgress;
+
+  @override
+  Future<bool> isReady() async => ready;
+
+  @override
+  Future<void> download({
+    ProgressCallback? onProgress,
+    CancelToken? cancel,
+  }) async {
+    downloads++;
+    lastCancel = cancel;
+    lastProgress = onProgress;
+    final total = config.totalBytes;
+    onProgress?.call(0, total);
+    if (hold != null) {
+      await hold!.future;
+      if (cancel?.isCancelled ?? false) throw const ModelDownloadCancelled();
+    }
+    if (failDownload != null) throw failDownload!;
+    onProgress?.call(total, total);
+    ready = true;
+  }
+
+  @override
+  Future<bool> remove() async {
+    removes++;
+    if (removeOk) ready = false;
+    return removeOk;
+  }
+
+  @override
+  Future<void> close() async => closes++;
+
+  @override
+  Future<void> sweepPartials() async => sweeps++;
+}
+
+class _NoLocal implements IdentificationProvider {
+  const _NoLocal();
+  @override
+  String get id => 'birdnet-local';
+  @override
+  String get label => 'BirdNET on this phone';
+  @override
+  bool get sendsAudioOffDevice => false;
+  @override
+  bool get noDetectionIsFinal => false;
+  @override
+  Future<bool> isAvailable() async => false;
+  @override
+  Future<IdentificationResult> identify(AudioClip clip) =>
+      throw const ProviderException(FailureKind.unavailable, 'none');
+}
+
 AppEnvironment fakeEnv({
   List<IdentificationProvider>? providers,
   FakeRecorder? recorder,
@@ -256,6 +361,7 @@ AppEnvironment fakeEnv({
   DeviceLocation? location,
   DataExporter? exporter,
   ReminderScheduler? reminders,
+  OfflineModel? offline,
   bool onboarded = true,
   DateTime Function()? now,
 }) => AppEnvironment(
@@ -279,6 +385,7 @@ AppEnvironment fakeEnv({
   location: location ?? FakeLocation(),
   exporter: exporter ?? FakeExporter(),
   reminders: reminders ?? FakeReminders(),
+  offline: offline ?? FakeOffline(),
   now: now ?? fixedNow,
 );
 

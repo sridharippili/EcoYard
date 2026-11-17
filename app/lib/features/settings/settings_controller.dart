@@ -5,6 +5,8 @@ import 'package:bird_audio/bird_audio.dart';
 import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:flutter/foundation.dart';
 
+import 'offline_model_controller.dart';
+
 enum SettingsLoadState { loading, ready, failed }
 
 /// The user's settings, and the data controls (see, copy, erase).
@@ -19,6 +21,7 @@ class SettingsController extends ChangeNotifier {
     required this.now,
     required this.exporter,
     required this.reminders,
+    required this.offline,
   });
 
   /// Opens the shared storage (or returns it if already open).
@@ -26,6 +29,7 @@ class SettingsController extends ChangeNotifier {
   final AudioCache audio;
   final DataExporter exporter;
   final ReminderScheduler reminders;
+  final OfflineModelController offline;
   final DateTime Function() now;
 
   SettingsLoadState state = SettingsLoadState.loading;
@@ -148,6 +152,9 @@ class SettingsController extends ChangeNotifier {
   /// After this the app is back to a first launch: defaults, introduction not
   /// seen. The caller resets the screens that hold copies of the data.
   Future<void> deleteEverything() async {
+    // No download may be running, and the model must be closed, while the
+    // data is erased.
+    await offline.stopForErase();
     final s = await storage();
     await s.wipeAll();
     settings = AppSettings.initial;
@@ -157,6 +164,8 @@ class SettingsController extends ChangeNotifier {
     await audio.sweep();
     // A leftover export file holds the data that was just erased.
     await exporter.sweep();
+    // The downloaded model and any partial file go too.
+    await offline.eraseAfterWipe();
     // The settings are back to "reminder off"; no notification may remain.
     try {
       await reminders.cancelAll();

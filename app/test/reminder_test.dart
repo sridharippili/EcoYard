@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bird_audio/bird_audio.dart';
 import 'package:ecoyard/features/plan/reminder_card.dart';
 import 'package:ecoyard/features/plan/reminder_controller.dart';
+import 'package:ecoyard/features/settings/offline_model_controller.dart';
 import 'package:ecoyard/features/settings/settings_controller.dart';
 import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,6 +30,7 @@ void main() {
       now: () => clock,
       exporter: FakeExporter(),
       reminders: sched,
+      offline: OfflineModelController(model: FakeOffline()),
     );
     await settings.init();
     c = ReminderController(

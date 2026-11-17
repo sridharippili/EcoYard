@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bird_audio/bird_audio.dart';
+import 'package:ecoyard/features/settings/offline_model_controller.dart';
 import 'package:ecoyard/features/settings/settings_controller.dart';
 import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +23,8 @@ void main() {
   late SettingsController c;
   late FakeExporter exporter;
   late FakeReminders reminders;
+  late FakeOffline fakeOffline;
+  late OfflineModelController offline;
   final clock = DateTime.utc(2026, 11, 14, 9);
 
   SettingsController make([Future<AppStorage> Function()? open]) =>
@@ -31,6 +34,7 @@ void main() {
         now: () => clock,
         exporter: exporter,
         reminders: reminders,
+        offline: offline,
       );
 
   setUp(() {
@@ -38,6 +42,8 @@ void main() {
     storage = InMemoryAppStorage();
     exporter = FakeExporter();
     reminders = FakeReminders();
+    fakeOffline = FakeOffline();
+    offline = OfflineModelController(model: fakeOffline);
     c = make();
   });
   tearDown(() => tmp.deleteSync(recursive: true));

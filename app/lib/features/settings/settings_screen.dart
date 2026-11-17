@@ -7,6 +7,8 @@ import '../../app/theme.dart';
 
 import '../../app/content.dart';
 import '../plants/plant_labels.dart';
+import 'offline_model_card.dart';
+import 'offline_model_controller.dart';
 import 'privacy_pages.dart';
 import 'settings_controller.dart';
 
@@ -20,11 +22,13 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({
     super.key,
     required this.controller,
+    required this.offline,
     required this.content,
     required this.onErased,
   });
 
   final SettingsController controller;
+  final OfflineModelController offline;
   final AppContent content;
 
   /// Called after "Delete my data" succeeded, so the Shell can reset every
@@ -89,6 +93,8 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             _Defaults(controller: controller),
+            h('Offline identification'),
+            OfflineModelCard(controller: offline),
             h('Privacy at a glance'),
             const _Fact(
               Icons.mic_none,
@@ -96,13 +102,26 @@ class SettingsScreen extends StatelessWidget {
               'Used only while you record, after you tap Record. You can turn '
                   'it off in the iPhone Settings app, under EcoYard.',
             ),
-            const _Fact(
-              Icons.cloud_upload_outlined,
-              'Recordings',
-              'A recording is sent online to NatureLM (or to BirdNET if '
-                  'NatureLM is not available) to identify the bird. EcoYard '
-                  'does not save it on your phone. How those services '
-                  'handle it is up to them.',
+            ListenableBuilder(
+              listenable: offline,
+              builder: (context, _) => _Fact(
+                Icons.cloud_upload_outlined,
+                'Recordings',
+                offline.state == OfflineState.ready
+                    ? 'With the offline model on this phone, a recording is '
+                          'identified here first and not sent anywhere. Only '
+                          'if the phone model can\'t tell is it sent online, to '
+                          'NatureLM (or BirdNET if NatureLM is not available), '
+                          'and the result says so. EcoYard does not save it on '
+                          'your phone. How those services handle it is up to '
+                          'them.'
+                    : 'A recording is sent online to NatureLM (or to BirdNET '
+                          'if NatureLM is not available) to identify the bird. '
+                          'EcoYard does not save it on your phone. How those '
+                          'services handle it is up to them. You can download '
+                          'the offline model above to identify on your '
+                          'phone instead.',
+              ),
             ),
             _LocationFact(controller: controller),
             const _Fact(
@@ -464,7 +483,8 @@ Future<void> confirmAndErase(
       title: const Text('Delete my data?'),
       content: const Text(
         'This erases your plan and your saved settings from this device and '
-        'returns EcoYard to its first launch. It cannot be undone.\n\n'
+        'returns EcoYard to its first launch. If you downloaded the offline '
+        'model, it is removed too. It cannot be undone.\n\n'
         'Recordings already sent to NatureLM or BirdNET for identification '
         'are outside the app, so they cannot be erased from here.',
       ),

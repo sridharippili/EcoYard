@@ -21,6 +21,18 @@ class AppContent {
   bool get isDraft => repo.reviewStatus == ReviewStatus.draft;
 }
 
+/// The offline model's settings and download addresses. Never throws: if the
+/// file is missing or unreadable the feature is simply not offered.
+Future<OfflineModelConfig> loadOfflineModelConfig() async {
+  try {
+    return OfflineModelConfig.parse(
+      await rootBundle.loadString('assets/content/offline_model.json'),
+    );
+  } catch (_) {
+    return OfflineModelConfig.none;
+  }
+}
+
 /// Reads `assets/content/*.json` (copies of the repo's `content/`, kept equal
 /// by `scripts/sync_content.sh` and a test). Throws if a file is missing or
 /// malformed; the app then shows a retry screen, never a half-working app.

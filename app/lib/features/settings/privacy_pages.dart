@@ -55,7 +55,11 @@ class PrivacyPolicyScreen extends StatelessWidget {
               'available, it is sent to BirdNET instead. Like any internet '
               'request, the service can see your network address. How those '
               'services handle the clip is up to them: EcoYard cannot erase '
-              'it for you. EcoYard does not save the clip on your phone.',
+              'it for you. EcoYard does not save the clip on your phone.\n\n'
+              'If you download the offline model in Settings, a model '
+              'on the phone listens to the clip first and nothing is sent anywhere. Only '
+              'if the phone model cannot tell is it sent online as above, '
+              'and the result says so.',
             ),
             h('Location and the weather'),
             const Text(
@@ -139,8 +143,11 @@ class AboutScreen extends StatelessWidget {
               ),
             h('Bird sound identification'),
             const Text(
-              'The NatureLM and BirdNET online services. Results are '
-              'possible matches, not certainties.',
+              'The NatureLM and BirdNET online services, and BirdNET on your '
+              'phone if you download the offline model (K. Lisa Yang Center '
+              'for Conservation Bioacoustics, Cornell Lab of Ornithology, and '
+              'Chemnitz University of Technology). Results are possible '
+              'matches, not certainties.',
             ),
             h('Photos'),
             if (content.photos.isEmpty)

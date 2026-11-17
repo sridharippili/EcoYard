@@ -131,6 +131,11 @@ class ProviderChain {
     throw NoProviderAnsweredException(failures);
   }
 
+  /// Forgets what was learned about the providers, so the next probe and the
+  /// next recording look again. Call when something changed that a cached
+  /// "down" would hide, such as the offline model finishing its download.
+  void forgetHealth() => _health.clear();
+
   bool? _freshHealth(String id) {
     final c = _health[id];
     if (c == null) return null;

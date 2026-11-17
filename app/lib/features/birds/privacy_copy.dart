@@ -21,7 +21,14 @@ String? privacyBadge(ChainOutcome o) {
 
 /// Explains a fall-through, or null when the first provider answered.
 String? fallbackNote(ChainOutcome o) {
-  final tried = o.failuresBefore;
+  // The phone model being absent or switched off is routine, not news.
+  final tried = o.failuresBefore
+      .where(
+        (f) =>
+            !(f.providerId == 'birdnet-local' &&
+                f.kind == FailureKind.unavailable),
+      )
+      .toList();
   if (tried.isEmpty) return null;
   final names = tried.map((f) => _label(f.providerId)).toSet().join(' and ');
   final verb = tried.every((f) => f.skipped)

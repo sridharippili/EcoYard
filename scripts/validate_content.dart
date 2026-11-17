@@ -14,6 +14,7 @@
 import 'dart:io';
 
 import '../packages/ecoyard_core/lib/src/content_validator.dart';
+import '../packages/ecoyard_core/lib/src/offline_model.dart';
 import '../packages/ecoyard_core/lib/src/reference_repository.dart';
 
 void main(List<String> args) {
@@ -42,20 +43,33 @@ void main(List<String> args) {
     strict: strict,
   );
 
-  for (final w in report.warnings) {
+  final offline = validateOfflineModel(
+    read('offline_model.json'),
+    strict: strict,
+  );
+  final warnings = [
+    ...report.warnings,
+    ...offline.where((i) => i.severity == IssueSeverity.warning),
+  ];
+  final errors = [
+    ...report.errors,
+    ...offline.where((i) => i.severity == IssueSeverity.error),
+  ];
+
+  for (final w in warnings) {
     stdout.writeln(w);
   }
-  for (final e in report.errors) {
+  for (final e in errors) {
     stderr.writeln(e);
   }
 
   final mode = strict ? 'strict' : 'normal';
-  if (report.ok) {
-    stdout.writeln('content OK ($mode): ${report.warnings.length} warning(s)');
+  if (errors.isEmpty) {
+    stdout.writeln('content OK ($mode): ${warnings.length} warning(s)');
   } else {
     stderr.writeln(
-      'content FAILED ($mode): ${report.errors.length} error(s), '
-      '${report.warnings.length} warning(s)',
+      'content FAILED ($mode): ${errors.length} error(s), '
+      '${warnings.length} warning(s)',
     );
     exit(1);
   }

@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 
 import 'birdnet_online_provider.dart';
+import 'identification.dart';
 import 'naturelm_provider.dart';
 import 'provider_chain.dart';
 
@@ -10,11 +11,16 @@ import 'provider_chain.dart';
 /// 2. BirdNET online, when NatureLM is not responsive
 /// 3. neither reachable -> [ProviderChain.identify] throws honestly
 ///
-/// On-device BirdNET is deferred, not part of v1.
-ProviderChain standardOnlineChain({http.Client? client}) {
+/// With [local] (the offline model), it goes first. While the model is not
+/// on the phone it is skipped and the chain is exactly the one above.
+ProviderChain standardOnlineChain({
+  http.Client? client,
+  IdentificationProvider? local,
+}) {
   final c = client ?? http.Client();
   return ProviderChain(
     [
+      if (local != null) local,
       NatureLmProvider(client: c),
       BirdNetOnlineProvider(client: c),
     ],

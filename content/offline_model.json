@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "reviewStatus": "draft",
+  "reviewedBy": "",
+  "reviewedOn": "",
+  "modelVersion": "birdnet-2.4-fp32",
+  "sampleRate": 48000,
+  "minTailSeconds": 1.0,
+  "topN": 5,
+  "scoreFloor": 0.25,
+  "scoreFloorProvisional": true,
+  "licenceCleared": false,
+  "licenceNote": "BirdNET V2.4 is CC BY-NC-SA 4.0 (non-commercial). Needs a decision before any public release.",
+  "files": [
+    {
+      "role": "model",
+      "name": "birdnet-2.4-fp32.tflite",
+      "url": "",
+      "bytes": 51726412,
+      "sha256": "55f3e4055b1a13bfa9a2452731d0d34f6a02d6b775a334362665892794165e4c"
+    },
+    {
+      "role": "labels",
+      "name": "birdnet-2.4-fp32-labels.txt",
+      "url": "",
+      "bytes": 259740,
+      "sha256": "b50b77b7c3dfe40cd637e8cccdca0173a0a4ddee8867b830ff3c1a566f477f16"
+    }
+  ]
+}

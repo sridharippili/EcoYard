@@ -13,8 +13,9 @@ class AudioCache {
 
   final Future<Directory> Function() _tempDir;
 
-  /// Matches exactly the names `RecordPackageRecorder` creates.
-  static final RegExp _ours = RegExp(r'^ecoyard_\d+\.m4a$');
+  /// Matches exactly the names `RecordPackageRecorder` creates (`.m4a`, or
+  /// `.wav` when the offline model is in use).
+  static final RegExp _ours = RegExp(r'^ecoyard_\d+\.(m4a|wav)$');
 
   /// Deletes leftover recordings and returns how many it removed.
   ///

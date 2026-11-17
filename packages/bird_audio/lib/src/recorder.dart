@@ -24,24 +24,39 @@ abstract interface class ClipRecorder {
 }
 
 /// [ClipRecorder] backed by the `record` package: AAC in an `.m4a` file,
-/// the format both services accept.
+/// the format both services accept, unless [useWav] says the offline model
+/// is ready, in which case it records 48 kHz mono WAV, which is what the
+/// model reads. Asked once, when a recording starts.
 class RecordPackageRecorder implements ClipRecorder {
-  RecordPackageRecorder() : _recorder = AudioRecorder();
+  RecordPackageRecorder({this.useWav}) : _recorder = AudioRecorder();
 
+  final Future<bool> Function()? useWav;
   final AudioRecorder _recorder;
   String? _path;
+  bool _wav = false;
 
   @override
   Future<bool> hasPermission() => _recorder.hasPermission();
 
   @override
   Future<void> start() async {
+    var wav = false;
+    try {
+      wav = await useWav?.call() ?? false;
+    } catch (_) {}
+    _wav = wav;
     final dir = await getTemporaryDirectory();
-    final path =
-        '${dir.path}/ecoyard_${DateTime.now().microsecondsSinceEpoch}.m4a';
+    final path = '${dir.path}/ecoyard_${DateTime.now().microsecondsSinceEpoch}.'
+        '${wav ? 'wav' : 'm4a'}';
     _path = path;
     await _recorder.start(
-      const RecordConfig(encoder: AudioEncoder.aacLc, numChannels: 1),
+      wav
+          ? const RecordConfig(
+              encoder: AudioEncoder.wav,
+              sampleRate: 48000,
+              numChannels: 1,
+            )
+          : const RecordConfig(encoder: AudioEncoder.aacLc, numChannels: 1),
       path: path,
     );
   }
@@ -58,7 +73,13 @@ class RecordPackageRecorder implements ClipRecorder {
     try {
       final bytes = await file.readAsBytes();
       if (bytes.isEmpty) throw StateError('Recording was empty.');
-      return AudioClip(bytes: bytes, fileName: 'recording.m4a');
+      return _wav
+          ? AudioClip(
+              bytes: bytes,
+              fileName: 'recording.wav',
+              mimeType: 'audio/wav',
+            )
+          : AudioClip(bytes: bytes, fileName: 'recording.m4a');
     } finally {
       await _deleteQuietly(file);
     }

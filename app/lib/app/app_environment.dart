@@ -1,4 +1,5 @@
 import 'package:bird_audio/bird_audio.dart';
+import 'package:ecoyard_core/ecoyard_core.dart' show OfflineModelConfig;
 
 import 'content.dart';
 
@@ -15,22 +16,27 @@ class AppEnvironment {
     required this.location,
     required this.exporter,
     required this.reminders,
+    required this.offline,
     this.now = DateTime.now,
   });
 
   /// Real services: NatureLM via the router, then BirdNET online; the bundled
   /// content; the plan in a SQLite file on the device.
-  factory AppEnvironment.live() => AppEnvironment(
-    chain: standardOnlineChain(),
-    newRecorder: RecordPackageRecorder.new,
-    loadContent: loadBundledContent,
-    openStorage: SqliteAppStorage.open,
-    audioCache: AudioCache(),
-    weather: OpenMeteoWeather(),
-    location: const GeolocatorLocation(),
-    exporter: ShareSheetExporter(),
-    reminders: LocalNotificationReminders(),
-  );
+  factory AppEnvironment.live({required OfflineModelConfig offlineConfig}) {
+    final offline = OfflineModelHost(config: offlineConfig);
+    return AppEnvironment(
+      chain: standardOnlineChain(local: offline.provider),
+      newRecorder: () => RecordPackageRecorder(useWav: offline.isReady),
+      offline: offline,
+      loadContent: loadBundledContent,
+      openStorage: SqliteAppStorage.open,
+      audioCache: AudioCache(),
+      weather: OpenMeteoWeather(),
+      location: const GeolocatorLocation(),
+      exporter: ShareSheetExporter(),
+      reminders: LocalNotificationReminders(),
+    );
+  }
 
   final ProviderChain chain;
 
@@ -59,6 +65,9 @@ class AppEnvironment {
 
   /// Weekly reminders, as notifications made and shown on the phone.
   final ReminderScheduler reminders;
+
+  /// The offline model: on the phone or not, and how to get or remove it.
+  final OfflineModel offline;
 
   /// The clock. Used for the month (advice) and for plan timestamps.
   final DateTime Function() now;

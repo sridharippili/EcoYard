@@ -13,6 +13,7 @@ import '../features/plan/plan_controller.dart';
 import '../features/plan/plan_screen.dart';
 import '../features/plan/reminder_controller.dart';
 import '../features/weather/weather_controller.dart';
+import '../features/settings/offline_model_controller.dart';
 import '../features/settings/onboarding_screen.dart';
 import '../features/settings/settings_controller.dart';
 import '../features/settings/settings_screen.dart';
@@ -56,12 +57,18 @@ class _ShellState extends State<Shell> {
     }
   }
 
+  late final OfflineModelController _offline = OfflineModelController(
+    model: widget.env.offline,
+    onReadyChanged: widget.env.chain.forgetHealth,
+  );
+
   late final SettingsController _settings = SettingsController(
     storage: _openStorage,
     audio: widget.env.audioCache,
     now: widget.env.now,
     exporter: widget.env.exporter,
     reminders: widget.env.reminders,
+    offline: _offline,
   );
 
   late final ReminderController _reminders = ReminderController(
@@ -95,6 +102,7 @@ class _ShellState extends State<Shell> {
   void initState() {
     super.initState();
     _plan.init();
+    unawaited(_offline.init());
     _settings.addListener(_onSettingsChanged);
     _settings.init();
   }
@@ -138,6 +146,7 @@ class _ShellState extends State<Shell> {
   void dispose() {
     _settings.removeListener(_onSettingsChanged);
     _reminders.dispose();
+    _offline.dispose();
     _weather.dispose();
     _finder.dispose();
     _plan.dispose();
@@ -213,6 +222,7 @@ class _ShellState extends State<Shell> {
       ),
       SettingsScreen(
         controller: _settings,
+        offline: _offline,
         content: widget.content,
         onErased: _onErased,
       ),
