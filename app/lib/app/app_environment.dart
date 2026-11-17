@@ -14,6 +14,7 @@ class AppEnvironment {
     required this.weather,
     required this.location,
     required this.exporter,
+    required this.reminders,
     this.now = DateTime.now,
   });
 
@@ -28,6 +29,7 @@ class AppEnvironment {
     weather: OpenMeteoWeather(),
     location: const GeolocatorLocation(),
     exporter: ShareSheetExporter(),
+    reminders: LocalNotificationReminders(),
   );
 
   final ProviderChain chain;
@@ -54,6 +56,9 @@ class AppEnvironment {
 
   /// Offers the user's data as a file through the system share sheet.
   final DataExporter exporter;
+
+  /// Weekly reminders, as notifications made and shown on the phone.
+  final ReminderScheduler reminders;
 
   /// The clock. Used for the month (advice) and for plan timestamps.
   final DateTime Function() now;

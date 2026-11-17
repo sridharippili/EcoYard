@@ -21,6 +21,7 @@ void main() {
   late InMemoryAppStorage storage;
   late SettingsController c;
   late FakeExporter exporter;
+  late FakeReminders reminders;
   final clock = DateTime.utc(2026, 11, 14, 9);
 
   SettingsController make([Future<AppStorage> Function()? open]) =>
@@ -29,12 +30,14 @@ void main() {
         audio: AudioCache(tempDir: () async => tmp),
         now: () => clock,
         exporter: exporter,
+        reminders: reminders,
       );
 
   setUp(() {
     tmp = Directory.systemTemp.createTempSync('ecoyard_sc_');
     storage = InMemoryAppStorage();
     exporter = FakeExporter();
+    reminders = FakeReminders();
     c = make();
   });
   tearDown(() => tmp.deleteSync(recursive: true));

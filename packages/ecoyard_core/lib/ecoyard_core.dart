@@ -15,5 +15,6 @@ export 'src/photo_credits.dart';
 export 'src/plan.dart';
 export 'src/plant_finder.dart';
 export 'src/reference_repository.dart';
+export 'src/reminder.dart';
 export 'src/species_resolver.dart';
 export 'src/weather.dart';

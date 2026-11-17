@@ -11,6 +11,7 @@ import '../features/plants/plant_finder_controller.dart';
 import '../features/plants/plant_finder_screen.dart';
 import '../features/plan/plan_controller.dart';
 import '../features/plan/plan_screen.dart';
+import '../features/plan/reminder_controller.dart';
 import '../features/weather/weather_controller.dart';
 import '../features/settings/onboarding_screen.dart';
 import '../features/settings/settings_controller.dart';
@@ -60,6 +61,13 @@ class _ShellState extends State<Shell> {
     audio: widget.env.audioCache,
     now: widget.env.now,
     exporter: widget.env.exporter,
+    reminders: widget.env.reminders,
+  );
+
+  late final ReminderController _reminders = ReminderController(
+    settings: _settings,
+    scheduler: widget.env.reminders,
+    now: widget.env.now,
   );
 
   late final PlanController _plan = PlanController(
@@ -117,6 +125,7 @@ class _ShellState extends State<Shell> {
     // their choice until they ask for the defaults ("Find Native Plants").
     if (loadedNow || defaultsChanged) _finder.adoptDefaultsIfUntouched();
     // A saved place means the weather can load; no place means it asks.
+    if (loadedNow) unawaited(_reminders.sync());
     if (loadedNow || _lastSettings.place != s.place) {
       unawaited(_weather.refreshIfNeeded());
     }
@@ -128,6 +137,7 @@ class _ShellState extends State<Shell> {
   @override
   void dispose() {
     _settings.removeListener(_onSettingsChanged);
+    _reminders.dispose();
     _weather.dispose();
     _finder.dispose();
     _plan.dispose();
@@ -199,6 +209,7 @@ class _ShellState extends State<Shell> {
         controller: _plan,
         onShowPlants: _showPlants,
         onIdentify: () => _showTab(2),
+        reminders: _reminders,
       ),
       SettingsScreen(
         controller: _settings,

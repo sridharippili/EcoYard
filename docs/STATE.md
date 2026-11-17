@@ -46,7 +46,7 @@ The working memory for this repo. Keep it short. If this file passes
 
 ## Known gaps from Phase 4
 
-- Deferred from the spec: weekly reminder toggle (needs a notifications package, Phase 7), bird photo, reference-call player, sightings/journal (engine `journalBirdIds` is passed empty), "See native shrubs" link (Plants tab is a placeholder)
+- Deferred from the spec: bird photo, reference-call player, sightings/journal (engine `journalBirdIds` is passed empty), "See native shrubs" link (Plants tab is a placeholder)
 - Space/sun/budget are session-only chips ("For this suggestion"), not stored (Settings, Phase 6). Budget offers Free / Free + low cost only: `BudgetTier.any` behaves the same as `low` while there are two cost tiers
 - Advice runs on the TOP detection only. An unknown bird gets general advice with no "add to plan" (the plan is keyed by bird id). A medium/low-confidence second detection is only listed under "Also heard"
 - A fuzzy (misspelled) name with no provider score is `low` confidence (resolver rule), so it gets no advice: NatureLM gives no score, so this matters if it misspells
@@ -107,6 +107,7 @@ Append one line per decision. Never delete; supersede with a new line.
 - 2026-11-16 — Tab bar is five tabs (Home, Plants, Birds, My Plan, Settings), as in the mockup. Map and Score from GardenEar are NOT built and must not be restored without an explicit user decision (the old open question below is still open)
 - 2026-11-16 — Review items that need something we do not have, so they are NOT done: (a) reference-call play button on the result (needs bundled, licensed recordings per species and an audio-playback package: hidden, not a dead control); (b) share-sheet export of the data as a JSON file (needs `share_plus`, a package the user has not approved; "Copy my data" stays); (c) checking whether the Kaggle notebook persists uploaded audio to /kaggle/working (needs access to the notebook; the policy says only what EcoYard itself does); (d) the privacy policy and About still need a human review before release
 - 2026-11-16 — Approved new package `share_plus` (user said yes). "Save or share my data" writes `ecoyard-my-data-<ms>.json` to the temp folder only while the iOS share sheet is open and deletes it in `finally`; start-up and Delete-my-data also sweep leftovers. Where the file goes next depends on the app the user picks, and the copy says so. Verified on the simulator: sheet opens, no file left after dismissing.
+- 2026-11-16 — Weekly reminder (My Plan), local notifications only. New packages `flutter_local_notifications` (approved) and `timezone` (its required companion; only the built-in UTC zone is used). Reminders are one-off notifications for the next 12 weeks, rebuilt at every app start, not a repeating rule, so daylight saving cannot shift them and no time-zone database or `flutter_timezone` is needed; if the app is not opened for 12 weeks they stop. The system permission prompt appears only when the toggle is turned on (initialisation requests nothing). Notification text is fixed and never names the plan. A reminder shown while the app is open in the foreground is not displayed: that needs a Swift line in AppDelegate, which the no-native-code rule forbids, so ask first. Android untested (SDK not installed).
 
 ## Open questions
 
@@ -211,3 +212,4 @@ single summary line covering that span, e.g.
 `- 2026-11-14 → 2026-12-20 — Phases 1–3 complete: packages split, content schema + resolver, habitat engine`.
 Keep recent entries detailed. Never let this file become an archive.
 - 2026-11-16 — Data export as a file through the share sheet (`share_plus`, `ShareSheetExporter`, Manage my data); review item 6 done. Pre-push gate green. [review item 6]
+- 2026-11-16 — Weekly reminder: toggle, day and time on My Plan; `ReminderTime` + `upcomingReminders` in core; `ReminderScheduler` in bird_audio; privacy page section; Delete my data cancels it. Verified on simulator (no prompt at launch, prompt on toggle). Pre-push green.

@@ -67,6 +67,14 @@ class PrivacyPolicyScreen extends StatelessWidget {
               'goes to Open-Meteo, the weather service, with nothing that '
               'identifies you. Remove it any time on the weather card.',
             ),
+            h('The weekly reminder'),
+            const Text(
+              'The reminder is off until you turn it on in My Plan, and '
+              'only then does your phone ask to allow notifications. It is '
+              'made and shown on your phone; nothing is sent to anyone. The '
+              'message is the same for everyone and never names your plan. '
+              'Turn it off in My Plan, or "Delete my data" removes it.',
+            ),
             h('What EcoYard does not do'),
             const Text(
               'It does not ask for your contacts or photos, does not track '

@@ -18,12 +18,14 @@ class SettingsController extends ChangeNotifier {
     required this.audio,
     required this.now,
     required this.exporter,
+    required this.reminders,
   });
 
   /// Opens the shared storage (or returns it if already open).
   final Future<AppStorage> Function() storage;
   final AudioCache audio;
   final DataExporter exporter;
+  final ReminderScheduler reminders;
   final DateTime Function() now;
 
   SettingsLoadState state = SettingsLoadState.loading;
@@ -74,6 +76,10 @@ class SettingsController extends ChangeNotifier {
       useDeviceLocation: useDeviceLocation,
     ),
   );
+
+  /// Saves the weekly reminder switch and/or its day and time.
+  Future<bool> saveReminder({bool? on, ReminderTime? time}) =>
+      _save((s) => s.copyWith(reminderOn: on, reminderTime: time));
 
   /// The introduction was seen or skipped.
   Future<bool> markOnboarded() =>
@@ -151,6 +157,10 @@ class SettingsController extends ChangeNotifier {
     await audio.sweep();
     // A leftover export file holds the data that was just erased.
     await exporter.sweep();
+    // The settings are back to "reminder off"; no notification may remain.
+    try {
+      await reminders.cancelAll();
+    } catch (_) {}
   }
 
   void _notify() {

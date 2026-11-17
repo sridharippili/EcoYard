@@ -201,6 +201,48 @@ class FakeExporter implements DataExporter {
   }
 }
 
+/// Records what was scheduled. Never touches the system.
+class FakeReminders implements ReminderScheduler {
+  FakeReminders({
+    this.allowed = false,
+    this.askAnswer = ReminderPermission.granted,
+  });
+
+  /// What the system currently allows.
+  bool allowed;
+
+  /// What the user answers if asked.
+  ReminderPermission askAnswer;
+  var asked = 0;
+  var cancels = 0;
+  Object? failSchedule;
+  List<DateTime> scheduled = [];
+  var scheduleCalls = 0;
+
+  @override
+  Future<bool> isAllowed() async => allowed;
+
+  @override
+  Future<ReminderPermission> requestPermission() async {
+    asked++;
+    allowed = askAnswer == ReminderPermission.granted;
+    return askAnswer;
+  }
+
+  @override
+  Future<void> schedule(List<DateTime> times) async {
+    scheduleCalls++;
+    if (failSchedule != null) throw failSchedule!;
+    scheduled = List.of(times);
+  }
+
+  @override
+  Future<void> cancelAll() async {
+    cancels++;
+    scheduled = [];
+  }
+}
+
 AppEnvironment fakeEnv({
   List<IdentificationProvider>? providers,
   FakeRecorder? recorder,
@@ -213,6 +255,7 @@ AppEnvironment fakeEnv({
   WeatherService? weather,
   DeviceLocation? location,
   DataExporter? exporter,
+  ReminderScheduler? reminders,
   bool onboarded = true,
   DateTime Function()? now,
 }) => AppEnvironment(
@@ -235,6 +278,7 @@ AppEnvironment fakeEnv({
   weather: weather ?? FakeWeather(),
   location: location ?? FakeLocation(),
   exporter: exporter ?? FakeExporter(),
+  reminders: reminders ?? FakeReminders(),
   now: now ?? fixedNow,
 );
 

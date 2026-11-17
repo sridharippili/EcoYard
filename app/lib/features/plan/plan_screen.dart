@@ -5,6 +5,8 @@ import '../../app/theme.dart';
 
 import '../birds/bird_details.dart' show costLabel;
 import 'plan_controller.dart';
+import 'reminder_card.dart';
+import 'reminder_controller.dart';
 
 /// My Habitat Plan: the actions the user chose, with progress.
 class PlanScreen extends StatelessWidget {
@@ -13,9 +15,11 @@ class PlanScreen extends StatelessWidget {
     required this.controller,
     required this.onShowPlants,
     required this.onIdentify,
+    required this.reminders,
   });
 
   final PlanController controller;
+  final ReminderController reminders;
 
   /// Opens the Birds tab, to identify a bird and build a plan from it.
   final VoidCallback onIdentify;
@@ -38,6 +42,8 @@ class PlanScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             ..._body(context),
+            const SizedBox(height: 8),
+            ReminderCard(controller: reminders),
             const SizedBox(height: 16),
             // True for the plan only. Nothing here talks about audio.
             const Text(

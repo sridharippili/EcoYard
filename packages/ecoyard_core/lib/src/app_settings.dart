@@ -4,6 +4,7 @@ import 'habitat_engine.dart' show BudgetTier;
 import 'weather.dart';
 import 'models.dart';
 import 'plan.dart';
+import 'reminder.dart';
 
 /// The few things the user can choose in Settings. Plain values only.
 ///
@@ -18,6 +19,8 @@ class AppSettings {
     this.onboardingDone = false,
     this.place,
     this.useDeviceLocation = false,
+    this.reminderOn = false,
+    this.reminderTime = ReminderTime.initial,
   });
 
   /// What a fresh install, or a wiped one, starts with.
@@ -39,6 +42,10 @@ class AppSettings {
   /// False until they say yes; never assumed.
   final bool useDeviceLocation;
 
+  /// The weekly reminder. Off until the user turns it on.
+  final bool reminderOn;
+  final ReminderTime reminderTime;
+
   static const keySpace = 'defaultSpace';
   static const keySun = 'defaultSun';
   static const keyBudget = 'defaultBudget';
@@ -48,6 +55,9 @@ class AppSettings {
   static const keyPlaceLat = 'placeLat';
   static const keyPlaceLon = 'placeLon';
   static const keyUseDeviceLocation = 'useDeviceLocation';
+  static const keyReminderOn = 'reminderOn';
+  static const keyReminderWeekday = 'reminderWeekday';
+  static const keyReminderMinutes = 'reminderMinutes';
 
   /// Reads settings from stored text. Anything unknown gets its default.
   factory AppSettings.fromMap(Map<String, String> m) {
@@ -85,6 +95,11 @@ class AppSettings {
         if (m[keyPlaceLon] != null) 'lon': m[keyPlaceLon]!,
       }),
       useDeviceLocation: m[keyUseDeviceLocation] == 'true',
+      reminderOn: m[keyReminderOn] == 'true',
+      reminderTime: ReminderTime.fromStored(
+        weekday: m[keyReminderWeekday],
+        minutes: m[keyReminderMinutes],
+      ),
     );
   }
 
@@ -94,6 +109,9 @@ class AppSettings {
         keyBudget: defaultBudget.json,
         keyOnboarded: onboardingDone.toString(),
         keyUseDeviceLocation: useDeviceLocation.toString(),
+        keyReminderOn: reminderOn.toString(),
+        keyReminderWeekday: reminderTime.weekday.toString(),
+        keyReminderMinutes: reminderTime.minutes.toString(),
         // Every key is always written, blank when there is no place: a store
         // that merges writes would otherwise keep an old place for ever.
         keyPlaceName: place?.name ?? '',
@@ -110,6 +128,8 @@ class AppSettings {
     Place? place,
     bool clearPlace = false,
     bool? useDeviceLocation,
+    bool? reminderOn,
+    ReminderTime? reminderTime,
   }) =>
       AppSettings(
         defaultSpace: defaultSpace ?? this.defaultSpace,
@@ -118,6 +138,8 @@ class AppSettings {
         onboardingDone: onboardingDone ?? this.onboardingDone,
         place: clearPlace ? null : (place ?? this.place),
         useDeviceLocation: useDeviceLocation ?? this.useDeviceLocation,
+        reminderOn: reminderOn ?? this.reminderOn,
+        reminderTime: reminderTime ?? this.reminderTime,
       );
 
   @override
@@ -128,11 +150,13 @@ class AppSettings {
       other.defaultBudget == defaultBudget &&
       other.onboardingDone == onboardingDone &&
       other.place == place &&
-      other.useDeviceLocation == useDeviceLocation;
+      other.useDeviceLocation == useDeviceLocation &&
+      other.reminderOn == reminderOn &&
+      other.reminderTime == reminderTime;
 
   @override
   int get hashCode => Object.hash(defaultSpace, defaultSun, defaultBudget,
-      onboardingDone, place, useDeviceLocation);
+      onboardingDone, place, useDeviceLocation, reminderOn, reminderTime);
 }
 
 /// What "Manage my data" shows, counted from what is really stored.
