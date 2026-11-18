@@ -58,3 +58,11 @@ reference/**/Pods/
 
 # Package lockfiles (only the app pins versions)
 packages/*/pubspec.lock
+
+# Review screenshots taken while working (large, regenerated at will)
+docs/screens/
+
+# Scratch and temporary launchers
+app/lib/probe_main.dart
+*.log
+.vscode/
