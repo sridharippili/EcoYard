@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'fakes.dart';
+import 'filters.dart';
 
 bool chipSelected(WidgetTester tester, String label) =>
     tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, label)).selected;
@@ -115,8 +116,7 @@ void main() {
         expect(find.text(name), findsOneWidget);
       } else {
         for (final sun in ['Part shade', 'Shade']) {
-          await tester.tap(find.text(sun));
-          await tester.pumpAndSettle();
+          await chooseVisible(tester, sun);
           if (find.text(name).evaluate().isNotEmpty) break;
         }
         expect(find.text(name), findsOneWidget);
@@ -128,7 +128,7 @@ void main() {
     ) async {
       await pumpApp(tester, fakeEnv());
       await tab(tester, 'Plants');
-      await tester.tap(find.text('Free only'));
+      await chooseVisible(tester, 'Free only');
       await tester.pumpAndSettle();
       expect(
         find.textContaining('No plant in this list is free'),
@@ -151,8 +151,8 @@ void main() {
       );
       await pumpApp(tester, fakeEnv());
       await tab(tester, 'Plants');
-      await tester.tap(find.text('Balcony'));
-      await tester.tap(find.text('Shade'));
+      await chooseVisible(tester, 'Balcony');
+      await chooseVisible(tester, 'Shade');
       await tester.pumpAndSettle();
       if (shadeBalcony.plants.isEmpty) {
         expect(
@@ -179,7 +179,7 @@ void main() {
       // Show every plant at once: full sun yard has most, so also check the
       // wording rules on the detail screens below.
       final all = allText(tester).join('\n');
-      expect(all, contains('Native to the Northeast'));
+      expect(all, contains('Northeast native'));
       expect(all, isNot(contains('NJ')));
       expect(all.toLowerCase(), isNot(contains('plant now')));
       expect(all.toLowerCase(), isNot(contains('blooms now')));
@@ -291,11 +291,14 @@ void main() {
       await tab(tester, 'Plants');
       final name = repo.plantById('black-chokeberry')!.commonName;
       for (final sun in ['Full sun', 'Part shade', 'Shade']) {
-        await tester.tap(find.text(sun));
-        await tester.pumpAndSettle();
+        await chooseVisible(tester, sun);
         if (find.text(name).evaluate().isNotEmpty) break;
       }
       await tester.scrollUntilVisible(find.text(name), 200);
+      // The last plant can still be under the floating tab bar here; the
+      // list has room below it, so scroll it clear before tapping.
+      await tester.drag(find.byType(ListView).first, const Offset(0, -400));
+      await tester.pumpAndSettle();
       await tester.tap(find.text(name));
       await tester.pumpAndSettle();
       expect(
@@ -361,7 +364,7 @@ void main() {
       await tester.tap(find.text('Find Native Plants'));
       await tester.pumpAndSettle();
       expect(find.text('Native Plants'), findsOneWidget);
-      expect(chipSelected(tester, 'Yard'), isTrue);
+      expect(isChosenVisible(tester, 'Yard'), isTrue);
     });
 
     testWidgets('Small Space opens Plants with Balcony already chosen', (
@@ -370,8 +373,8 @@ void main() {
       await pumpApp(tester, fakeEnv());
       await tester.tap(find.text('Small Space'));
       await tester.pumpAndSettle();
-      expect(chipSelected(tester, 'Balcony'), isTrue);
-      expect(chipSelected(tester, 'Yard'), isFalse);
+      expect(isChosenVisible(tester, 'Balcony'), isTrue);
+      expect(isChosenVisible(tester, 'Yard'), isFalse);
     });
 
     testWidgets('the Small Space preset does not stick', (tester) async {
@@ -381,8 +384,8 @@ void main() {
       await tab(tester, 'Home');
       await tester.tap(find.text('Find Native Plants'));
       await tester.pumpAndSettle();
-      expect(chipSelected(tester, 'Yard'), isTrue);
-      expect(chipSelected(tester, 'Balcony'), isFalse);
+      expect(isChosenVisible(tester, 'Yard'), isTrue);
+      expect(isChosenVisible(tester, 'Balcony'), isFalse);
     });
 
     testWidgets('the Plants tab button keeps the filters the user chose', (
@@ -390,11 +393,11 @@ void main() {
     ) async {
       await pumpApp(tester, fakeEnv());
       await tab(tester, 'Plants');
-      await tester.tap(find.text('Shade'));
+      await chooseVisible(tester, 'Shade');
       await tester.pumpAndSettle();
       await tab(tester, 'Home');
       await tab(tester, 'Plants');
-      expect(chipSelected(tester, 'Shade'), isTrue);
+      expect(isChosenVisible(tester, 'Shade'), isTrue);
     });
 
     testWidgets('My Plan tile opens My Plan', (tester) async {
@@ -423,13 +426,13 @@ void main() {
 
       // Start from a non-default choice so the reset is visible.
       await tab(tester, 'Plants');
-      await tester.tap(find.text('Shade'));
+      await chooseVisible(tester, 'Shade');
       await tester.pumpAndSettle();
       await tab(tester, 'My Plan');
       await tester.tap(find.text('See native plants'));
       await tester.pumpAndSettle();
       expect(find.text('Native Plants'), findsOneWidget);
-      expect(chipSelected(tester, 'Full sun'), isTrue);
+      expect(isChosenVisible(tester, 'Full sun'), isTrue);
     });
   });
 

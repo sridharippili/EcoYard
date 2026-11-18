@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'fakes.dart';
+import 'filters.dart';
 
 Future<void> tab(WidgetTester tester, String name) async {
   await tester.tap(
@@ -17,20 +18,6 @@ Future<void> tab(WidgetTester tester, String name) async {
   );
   await tester.pumpAndSettle();
 }
-
-bool selected<T extends Widget>(WidgetTester tester, String label) => tester
-    .widget<ChoiceChip>(
-      find.descendant(
-        of: find.byType(T),
-        matching: find.widgetWithText(ChoiceChip, label),
-      ),
-    )
-    .selected;
-
-Finder chipIn<T extends Widget>(String label) => find.descendant(
-  of: find.byType(T),
-  matching: find.widgetWithText(ChoiceChip, label),
-);
 
 void main() {
   final content = realAppContent();
@@ -202,9 +189,9 @@ void main() {
         'it shows plants', (tester) async {
       await pumpApp(tester, fakeEnv());
       await tab(tester, 'Plants');
-      await tester.tap(chipIn<PlantFinderScreen>('Balcony'));
-      await tester.tap(chipIn<PlantFinderScreen>('Shade'));
-      await tester.tap(chipIn<PlantFinderScreen>('Free only'));
+      await choose<PlantFinderScreen>(tester, 'Balcony');
+      await choose<PlantFinderScreen>(tester, 'Shade');
+      await choose<PlantFinderScreen>(tester, 'Free only');
       await tester.pumpAndSettle();
       expect(find.textContaining('plants fit'), findsNothing);
       final offer = find.byWidgetPredicate(
@@ -373,8 +360,8 @@ void main() {
         fakeEnv(providers: [answering('Northern Cardinal')], storage: st),
       );
       await recordAndStop(tester);
-      await tester.tap(chipIn<BirdDetailsPanel>('Balcony'));
-      await tester.tap(chipIn<BirdDetailsPanel>('Shade'));
+      await choose<BirdDetailsPanel>(tester, 'Balcony');
+      await choose<BirdDetailsPanel>(tester, 'Shade');
       await tester.pumpAndSettle();
 
       final saved = AppSettings.fromMap(await st.settings.loadAll());
@@ -390,12 +377,12 @@ void main() {
       final provider = answering('Northern Cardinal');
       await pumpApp(tester, fakeEnv(providers: [provider], storage: st));
       await recordAndStop(tester);
-      await tester.tap(chipIn<BirdDetailsPanel>('Balcony'));
+      await choose<BirdDetailsPanel>(tester, 'Balcony');
       await tester.pumpAndSettle();
       await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
       await recordAndStop(tester);
-      expect(selected<BirdDetailsPanel>(tester, 'Yard'), isTrue);
+      expect(isChosen<BirdDetailsPanel>(tester, 'Yard'), isTrue);
     });
 
     testWidgets('changing the Settings default shows on the next result', (
@@ -409,10 +396,10 @@ void main() {
         fakeEnv(providers: [answering('Northern Cardinal')], storage: st),
       );
       await tab(tester, 'Settings');
-      await tester.tap(chipIn<SettingsScreen>('Containers'));
+      await choose<SettingsScreen>(tester, 'Containers');
       await tester.pumpAndSettle();
       await recordAndStop(tester);
-      expect(selected<BirdDetailsPanel>(tester, 'Containers'), isTrue);
+      expect(isChosen<BirdDetailsPanel>(tester, 'Containers'), isTrue);
     });
   });
 

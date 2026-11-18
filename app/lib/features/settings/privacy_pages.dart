@@ -38,9 +38,10 @@ class PrivacyPolicyScreen extends StatelessWidget {
             h('The short version'),
             const Text(
               'EcoYard has no account and no sign-in. Your habitat plan and '
-              'settings are saved on this device. Two things can leave your '
-              'phone, and only when you ask: the short recording you choose '
-              'to identify, and a rough area used to fetch the weather.',
+              'settings are saved on this device. Three things can leave your '
+              'phone: the short recording you choose to identify, a rough '
+              'area used to fetch the weather (only if you choose one), and '
+              'the name of a bird, to look up its photo.',
             ),
             h('What is saved on your device'),
             const Text(
@@ -51,15 +52,27 @@ class PrivacyPolicyScreen extends StatelessWidget {
             h('What is sent online'),
             const Text(
               'When you tap Record and stop, the short clip is sent over the '
-              'internet to NatureLM to identify the bird. If NatureLM is not '
-              'available, it is sent to BirdNET instead. Like any internet '
-              'request, the service can see your network address. How those '
-              'services handle the clip is up to them: EcoYard cannot erase '
+              'internet to NatureLM and to BirdNET at the same time, so a '
+              'quick answer can show first while NatureLM checks it. If one '
+              'of them is not available, the other still answers. Like any '
+              'internet request, each service can see your network address. '
+              'How those services handle the clip is up to them: EcoYard '
+              'cannot erase '
               'it for you. EcoYard does not save the clip on your phone.\n\n'
               'If you download the offline model in Settings, a model '
               'on the phone listens to the clip first and nothing is sent anywhere. Only '
               'if the phone model cannot tell is it sent online as above, '
               'and the result says so.',
+            ),
+            h('Bird photos'),
+            const Text(
+              'When a result shows a bird we have no photo of, EcoYard asks '
+              'Wikipedia and Wikimedia Commons for one. Only the bird\'s name '
+              'is sent: not your recording, not your location, and nothing '
+              'else about you. Like any web request, Wikimedia can see your '
+              'phone\'s network address. Nothing is saved: the photo is shown '
+              'and forgotten. Each one is shown with its author and licence. '
+              'If there is no connection, a silhouette is shown instead.',
             ),
             h('Location and the weather'),
             const Text(
@@ -205,7 +218,9 @@ class PhotoCreditsScreen extends StatelessWidget {
           children: [
             const Text(
               'Photos come from Wikimedia Commons. Each one is used under '
-              'the licence below, and belongs to the person named.',
+              'the licence below, and belongs to the person named. Photos of '
+              'other birds are found when you identify them and are credited '
+              'right under the photo.',
             ),
             const SizedBox(height: 12),
             for (final p in photos)

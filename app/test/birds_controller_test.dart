@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bird_audio/bird_audio.dart';
 import 'package:ecoyard/features/birds/birds_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -93,23 +95,23 @@ void main() {
     c.dispose();
   });
 
-  test(
-    'nothing heard -> failed with heardNothing, BirdNET not asked',
-    () async {
-      nature.outcome = const ProviderException(
-        FailureKind.noDetection,
-        'silence',
-      );
-      final c = controller();
+  test('nothing heard -> failed with heardNothing (BirdNET was asked at the '
+      'same time, its quick answer is dropped)', () async {
+    nature.outcome = const ProviderException(
+      FailureKind.noDetection,
+      'silence',
+    );
+    final c = controller();
 
-      await c.toggleRecording();
-      await c.toggleRecording();
+    await c.toggleRecording();
+    await c.toggleRecording();
 
-      expect(c.failure!.heardNothing, isTrue);
-      expect(birdnet.identifyCalls, 0);
-      c.dispose();
-    },
-  );
+    expect(c.failure!.heardNothing, isTrue);
+    expect(birdnet.identifyCalls, 1);
+    expect(c.outcome, isNull);
+    expect(c.refining, isFalse);
+    c.dispose();
+  });
 
   test(
     'retry re-identifies the same recording without recording again',
@@ -187,5 +189,118 @@ void main() {
     controller().dispose();
     expect(recorder.disposed, isTrue);
     expect(recorder.cancelCalls, 1);
+  });
+
+  group('quick answer first, then the better service', () {
+    IdentificationResult named(String id, String species) =>
+        IdentificationResult(
+          providerId: id,
+          providerLabel: id == 'naturelm' ? 'NatureLM' : 'BirdNET',
+          sentAudioOffDevice: true,
+          detections: [Detection(speciesText: species)],
+        );
+
+    Future<BirdsController> recordWithSlowNature() async {
+      nature.gate = Completer<void>();
+      final c = controller();
+      await c.toggleRecording();
+      unawaited(c.toggleRecording());
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      return c;
+    }
+
+    test('BirdNET answers first: shown at once as a quick answer', () async {
+      final c = await recordWithSlowNature();
+      expect(c.phase, BirdsPhase.result);
+      expect(c.refining, isTrue);
+      expect(c.outcome!.result.providerId, 'birdnet');
+      nature.gate!.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      c.dispose();
+    });
+
+    test('NatureLM agrees: the answer on screen is kept, and NatureLM is '
+        'named as confirming it', () async {
+      final c = await recordWithSlowNature();
+      final shown = c.outcome;
+      nature.gate!.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(c.refining, isFalse);
+      expect(
+        identical(c.outcome, shown),
+        isTrue,
+        reason: 'the same object, so ticks and choices are not reset',
+      );
+      expect(c.confirmedBy, 'NatureLM');
+      expect(c.replacedAnswer, isNull);
+      c.dispose();
+    });
+
+    test('NatureLM disagrees: its answer replaces the quick one, and the '
+        'quick one is remembered', () async {
+      nature.outcome = named('naturelm', 'Blue Jay');
+      final c = await recordWithSlowNature();
+      nature.gate!.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(c.outcome!.result.providerId, 'naturelm');
+      expect(c.outcome!.result.top.speciesText, 'Blue Jay');
+      expect(c.replacedAnswer, 'Northern Cardinal');
+      expect(c.replacedBy, 'NatureLM');
+      expect(c.confirmedBy, isNull);
+      c.dispose();
+    });
+
+    test('NatureLM times out: the quick answer stands, nothing is left '
+        'spinning', () async {
+      nature.outcome = const ProviderException(FailureKind.timeout, 'slow');
+      final c = await recordWithSlowNature();
+      nature.gate!.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(c.phase, BirdsPhase.result);
+      expect(c.refining, isFalse);
+      expect(c.outcome!.result.providerId, 'birdnet');
+      c.dispose();
+    });
+
+    test('NatureLM hears no bird after a quick answer: it becomes "no bird '
+        'heard"', () async {
+      nature.outcome = const ProviderException(FailureKind.noDetection, 'x');
+      final c = await recordWithSlowNature();
+      nature.gate!.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(c.phase, BirdsPhase.failed);
+      expect(c.failure!.heardNothing, isTrue);
+      expect(c.outcome, isNull);
+      c.dispose();
+    });
+
+    test('Done while refining: a late answer is ignored', () async {
+      final c = await recordWithSlowNature();
+      c.dismiss();
+      nature.outcome = named('naturelm', 'Blue Jay');
+      nature.gate!.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(c.phase, BirdsPhase.idle);
+      expect(c.outcome, isNull);
+      expect(c.refining, isFalse);
+      c.dispose();
+    });
+
+    test('recording again while refining: the old run cannot overwrite the '
+        'new one', () async {
+      final c = await recordWithSlowNature();
+      final old = nature.gate!;
+      nature.gate = null;
+      nature.outcome = named('naturelm', 'American Robin');
+      birdnet.outcome = named('birdnet', 'American Robin');
+      await c.toggleRecording(); // starts a new recording
+      await c.toggleRecording(); // stops it: identifies again
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      nature.outcome = named('naturelm', 'Blue Jay');
+      old.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(c.outcome!.result.top.speciesText, 'American Robin');
+      c.dispose();
+    });
   });
 }

@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../../app/surfaces.dart';
 import 'offline_model_controller.dart';
 
 /// Settings > Offline identification: get or remove the bird model that
@@ -96,22 +97,19 @@ class OfflineModelCard extends StatelessWidget {
               isError: true,
             );
         }
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                body,
-                const SizedBox(height: 8),
-                Text(
-                  'Model: BirdNET, from the K. Lisa Yang Center for '
-                  'Conservation Bioacoustics (Cornell Lab of Ornithology) and '
-                  'Chemnitz University of Technology.',
-                  style: text.bodySmall,
-                ),
-              ],
-            ),
+        return InfoSurface(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              body,
+              const SizedBox(height: 8),
+              Text(
+                'Model: BirdNET, from the K. Lisa Yang Center for '
+                'Conservation Bioacoustics (Cornell Lab of Ornithology) and '
+                'Chemnitz University of Technology.',
+                style: text.bodySmall,
+              ),
+            ],
           ),
         );
       },

@@ -32,6 +32,13 @@ String nativityLabel(Nativity n) => switch (n) {
   Nativity.easternUs => 'Eastern US native',
 };
 
+/// The same facts, short enough for a badge on a plant row so that the two
+/// badges fit on one line.
+String nativityBadge(Nativity n) => switch (n) {
+  Nativity.nativeToRegion => 'Northeast native',
+  Nativity.easternUs => 'Eastern US native',
+};
+
 String sunLabel(SunExposure s) => switch (s) {
   SunExposure.full => 'Full sun',
   SunExposure.partial => 'Part shade',

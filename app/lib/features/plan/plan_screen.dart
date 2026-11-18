@@ -1,9 +1,9 @@
 import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../app/surfaces.dart';
 import '../../app/theme.dart';
 
-import '../birds/bird_details.dart' show costLabel;
 import 'plan_controller.dart';
 import 'reminder_card.dart';
 import 'reminder_controller.dart';
@@ -133,16 +133,19 @@ class _Banner extends StatelessWidget {
   final VoidCallback onClose;
 
   @override
-  Widget build(BuildContext context) => Card(
-    color: Theme.of(context).colorScheme.primaryContainer,
-    child: ListTile(
-      leading: const Icon(Icons.check_circle_outline),
-      title: Text(text),
-      trailing: IconButton(
-        tooltip: 'Dismiss',
-        icon: const Icon(Icons.close),
-        onPressed: onClose,
-      ),
+  Widget build(BuildContext context) => InfoSurface(
+    padding: const EdgeInsets.fromLTRB(16, 4, 4, 4),
+    child: Row(
+      children: [
+        const Icon(Icons.check_circle_outline),
+        const SizedBox(width: 12),
+        Expanded(child: Text(text)),
+        IconButton(
+          tooltip: 'Dismiss',
+          icon: const Icon(Icons.close),
+          onPressed: onClose,
+        ),
+      ],
     ),
   );
 }
@@ -152,20 +155,17 @@ class _ProgressCard extends StatelessWidget {
   final PlanProgress progress;
 
   @override
-  Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '${progress.done} of ${progress.total} done',
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
-          LinearProgressIndicator(value: progress.fraction),
-        ],
-      ),
+  Widget build(BuildContext context) => InfoSurface(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${progress.done} of ${progress.total} done',
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 8),
+        LinearProgressIndicator(value: progress.fraction),
+      ],
     ),
   );
 }
@@ -191,7 +191,7 @@ class _PlanTile extends StatelessWidget {
     ];
     return Card(
       child: CheckboxListTile(
-        controlAffinity: ListTileControlAffinity.leading,
+        controlAffinity: ListTileControlAffinity.trailing,
         value: done,
         onChanged: (v) => controller.setDone(item.entry.actionId, v == true),
         title: Text(item.title, style: TextStyle(decoration: strike)),
@@ -204,7 +204,7 @@ class _PlanTile extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               spacing: 12,
               children: [
-                Text(costLabel(item.costJson)),
+                CostBadge(free: item.costJson == 'free'),
                 if (item.action?.relatedPlantIds.isNotEmpty ?? false)
                   TextButton(
                     onPressed: onShowPlants,

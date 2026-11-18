@@ -4,6 +4,9 @@ import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/content.dart';
+import '../../app/filter_menus.dart';
+import '../../app/surfaces.dart';
+import '../../app/theme.dart';
 import '../plan/plan_controller.dart';
 
 String needLabel(Need n) => switch (n) {
@@ -13,6 +16,41 @@ String needLabel(Need n) => switch (n) {
   Need.nesting => 'Nesting',
   Need.safety => 'Safety',
 };
+
+IconData needIcon(Need n) => switch (n) {
+  Need.food => Icons.restaurant_outlined,
+  Need.shelter => Icons.park_outlined,
+  Need.water => Icons.water_drop_outlined,
+  Need.nesting => Icons.home_outlined,
+  Need.safety => Icons.shield_outlined,
+};
+
+/// The icon chip's background and icon colour for a need, for each theme.
+(Color, Color) needChipColors(Need n, Brightness b) {
+  final dark = b == Brightness.dark;
+  return switch (n) {
+    Need.food =>
+      dark
+          ? (const Color(0xFF3A2A1E), const Color(0xFFFFB98A))
+          : (const Color(0xFFFDE8DC), const Color(0xFF9A4A1E)),
+    Need.shelter =>
+      dark
+          ? (const Color(0xFF1E3A2B), const Color(0xFFA9E3BF))
+          : (const Color(0xFFDDEFE2), const Color(0xFF1F5C3F)),
+    Need.water =>
+      dark
+          ? (const Color(0xFF1B2E44), const Color(0xFF9CC8F5))
+          : (const Color(0xFFDDEBF8), const Color(0xFF1D5C9A)),
+    Need.nesting =>
+      dark
+          ? (const Color(0xFF3A3220), const Color(0xFFE0C98A))
+          : (const Color(0xFFEFE6D6), const Color(0xFF6B5428)),
+    Need.safety =>
+      dark
+          ? (const Color(0xFF47294D), const Color(0xFFE0AEEA))
+          : (const Color(0xFFF1E1F3), const Color(0xFF7A3A86)),
+  };
+}
 
 String costLabel(String costJson) => costJson == 'free' ? 'Free' : 'Low cost';
 
@@ -135,6 +173,11 @@ class _BirdDetailsPanelState extends State<BirdDetailsPanel> {
       for (final a in rec.actions)
         if (checked.contains(a.id)) a,
     ];
+    void toggle(String id, bool on) => setState(() {
+      final next = {...checked};
+      on ? next.add(id) : next.remove(id);
+      _checked = next;
+    });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -162,8 +205,12 @@ class _BirdDetailsPanelState extends State<BirdDetailsPanel> {
         const SizedBox(height: 16),
         if (!rec.isGeneric) ...[
           _Heading('How to support this bird'),
-          for (final n in rec.supportNeeds) _NeedRow(need: n, repo: repo),
-          const SizedBox(height: 16),
+          for (final n in rec.supportNeeds)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _NeedRow(need: n, repo: repo),
+            ),
+          const SizedBox(height: 8),
         ],
         _Heading('Simple actions'),
         if (rec.actions.isEmpty)
@@ -175,22 +222,57 @@ class _BirdDetailsPanelState extends State<BirdDetailsPanel> {
             ),
           )
         else ...[
-          for (final a in rec.actions)
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
-              value: checked.contains(a.id),
-              onChanged: _saving
-                  ? null
-                  : (v) => setState(() {
-                      final next = {...checked};
-                      v == true ? next.add(a.id) : next.remove(a.id);
-                      _checked = next;
-                    }),
-              title: Text(a.title),
-              subtitle: Text(a.body),
-              secondary: _CostTag(a.costTier.json),
+          // Read-only advice with ticks: one tinted card, the ticks are its
+          // only controls.
+          InfoSurface(
+            padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+            child: Column(
+              children: [
+                for (final a in rec.actions)
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _saving
+                        ? null
+                        : () => toggle(a.id, !checked.contains(a.id)),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Checkbox(
+                          value: checked.contains(a.id),
+                          onChanged: _saving
+                              ? null
+                              : (v) => toggle(a.id, v == true),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  a.title,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  a.body,
+                                  style: TextStyle(
+                                    color: context.eco.textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                _CostTag(a.costTier.json),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
+          ),
           if (rec.actions.length < 3)
             const Padding(
               padding: EdgeInsets.only(bottom: 4),
@@ -208,27 +290,32 @@ class _BirdDetailsPanelState extends State<BirdDetailsPanel> {
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
-        if (bird != null && rec.actions.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: FilledButton(
-              onPressed: selected.isEmpty || _saving
-                  ? null
-                  : () => _addToPlan(bird, selected),
-              child: Text(
-                selected.isEmpty
-                    ? 'Add these to my plan'
-                    : 'Add ${selected.length} to my plan',
-              ),
-            ),
+        // A bird we have no content for can still add the general actions,
+        // as long as the service gave it a name.
+        if (rec.actions.isNotEmpty &&
+            (bird != null || m.displayName.trim().isNotEmpty)) ...[
+          const SizedBox(height: 12),
+          PrimaryAction(
+            label: selected.isEmpty
+                ? 'Add these to my plan'
+                : 'Add ${selected.length} to my plan',
+            icon: Icons.add,
+            onPressed: selected.isEmpty || _saving
+                ? null
+                : () => _addToPlan(bird, m.displayName, selected),
           ),
+        ],
         const SizedBox(height: 16),
         _PlantsSection(rec: rec, bird: bird),
       ],
     );
   }
 
-  Future<void> _addToPlan(Bird bird, List<HabitatAction> actions) async {
+  Future<void> _addToPlan(
+    Bird? bird,
+    String name,
+    List<HabitatAction> actions,
+  ) async {
     // A second tap in the same frame arrives before the button is disabled.
     if (_saving) return;
     setState(() {
@@ -236,10 +323,12 @@ class _BirdDetailsPanelState extends State<BirdDetailsPanel> {
       _saveError = null;
     });
     try {
-      await widget.plan.add(
-        bird: bird,
-        actions: [for (final a in actions) PlanCandidate.fromAction(a)],
-      );
+      final candidates = [for (final a in actions) PlanCandidate.fromAction(a)];
+      if (bird != null) {
+        await widget.plan.add(bird: bird, actions: candidates);
+      } else {
+        await widget.plan.addForOtherBird(name: name, actions: candidates);
+      }
     } catch (_) {
       if (!mounted) return;
       // Stay here with the boxes as they were.
@@ -292,14 +381,7 @@ class _CostTag extends StatelessWidget {
   const _CostTag(this.costJson);
   final String costJson;
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.secondaryContainer,
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: Text(costLabel(costJson), style: const TextStyle(fontSize: 11)),
-  );
+  Widget build(BuildContext context) => CostBadge(free: costJson == 'free');
 }
 
 class _Choices extends StatelessWidget {
@@ -317,64 +399,51 @@ class _Choices extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget row<T>(
-      String label,
-      List<(T, String)> options,
-      T value,
-      void Function(T) set,
-    ) => Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Wrap(
-        spacing: 6,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          SizedBox(width: 58, child: Text(label)),
-          for (final (v, text) in options)
-            ChoiceChip(
-              label: Text(text),
-              selected: v == value,
-              showCheckmark: true,
-              onSelected: (_) => set(v),
-            ),
-        ],
-      ),
-    );
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'For this suggestion',
-          style: Theme.of(context).textTheme.labelMedium,
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text(
+            'For this suggestion',
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
         ),
-        row<SpaceType>(
-          'Space',
-          const [
-            (SpaceType.yard, 'Yard'),
-            (SpaceType.balcony, 'Balcony'),
-            (SpaceType.containers, 'Containers'),
+        FilterMenuRow(
+          menus: [
+            FilterMenu<SpaceType>(
+              key: filterSpaceKey,
+              label: 'Space',
+              value: space,
+              options: const [
+                (SpaceType.yard, 'Yard'),
+                (SpaceType.balcony, 'Balcony'),
+                (SpaceType.containers, 'Containers'),
+              ],
+              onChanged: (v) => onChanged(v, sun, budget),
+            ),
+            FilterMenu<SunExposure>(
+              key: filterSunKey,
+              label: 'Sun',
+              value: sun,
+              options: const [
+                (SunExposure.full, 'Full'),
+                (SunExposure.partial, 'Partial'),
+                (SunExposure.shade, 'Shade'),
+              ],
+              onChanged: (v) => onChanged(space, v, budget),
+            ),
+            FilterMenu<BudgetTier>(
+              key: filterBudgetKey,
+              label: 'Budget',
+              value: budget,
+              options: const [
+                (BudgetTier.free, 'Free only'),
+                (BudgetTier.low, 'Free + low cost'),
+              ],
+              onChanged: (v) => onChanged(space, sun, v),
+            ),
           ],
-          space,
-          (v) => onChanged(v, sun, budget),
-        ),
-        row<SunExposure>(
-          'Sun',
-          const [
-            (SunExposure.full, 'Full'),
-            (SunExposure.partial, 'Partial'),
-            (SunExposure.shade, 'Shade'),
-          ],
-          sun,
-          (v) => onChanged(space, v, budget),
-        ),
-        row<BudgetTier>(
-          'Budget',
-          const [
-            (BudgetTier.free, 'Free only'),
-            (BudgetTier.low, 'Free + low cost'),
-          ],
-          budget,
-          (v) => onChanged(space, sun, v),
         ),
       ],
     );
@@ -415,20 +484,42 @@ class _NeedRow extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          needLabel(need.need),
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        Text(need.why),
-        Text(_status, style: Theme.of(context).textTheme.bodySmall),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    final (bg, fg) = needChipColors(need.need, Theme.of(context).brightness);
+    // A bordered row on the page with a coloured icon chip. It is not
+    // tappable, so no chevron and no pressed state.
+    return InteractiveSurface(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(needIcon(need.need), color: fg),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  needLabel(need.need),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Text(need.why),
+                Text(_status, style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _PlantsSection extends StatelessWidget {

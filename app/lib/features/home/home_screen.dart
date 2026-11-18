@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/content.dart';
+import '../../app/surfaces.dart';
 import '../../app/theme.dart';
 import '../weather/weather_card.dart';
 import '../weather/weather_controller.dart';
@@ -71,9 +72,9 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The theme's primary green is dark on a light screen and light on a dark
+    // The green for text and icons: dark on a light screen, light on a dark
     // one, so the title is readable in both.
-    final green = Theme.of(context).colorScheme.primary;
+    final green = context.eco.accentText;
     return Row(
       children: [
         Icon(Icons.eco, color: green),
@@ -90,27 +91,29 @@ class _Header extends StatelessWidget {
   }
 }
 
+/// The screen's one primary action: filled accent, full width.
 class _IdentifyButton extends StatelessWidget {
   const _IdentifyButton({required this.onTap});
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final t = context.eco;
     return Material(
-      color: EcoColors.forest,
-      borderRadius: BorderRadius.circular(16),
+      color: t.accent,
+      borderRadius: BorderRadius.circular(surfaceRadius),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(surfaceRadius),
         onTap: onTap,
-        child: const Padding(
-          padding: EdgeInsets.all(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: Colors.white24,
-                child: Icon(Icons.mic, color: Colors.white),
+                backgroundColor: t.accentOn.withValues(alpha: 0.20),
+                child: Icon(Icons.mic, color: t.accentOn),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,19 +121,21 @@ class _IdentifyButton extends StatelessWidget {
                     Text(
                       'Identify a Bird',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: t.accentOn,
                         fontWeight: FontWeight.w700,
                         fontSize: 18,
                       ),
                     ),
                     Text(
                       'Record a sound and learn how to support it',
-                      style: TextStyle(color: Colors.white70),
+                      style: TextStyle(
+                        color: t.accentOn.withValues(alpha: 0.85),
+                      ),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: Colors.white),
+              Icon(Icons.chevron_right, color: t.accentOn),
             ],
           ),
         ),
@@ -151,31 +156,40 @@ class _TileRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget tile(String label, IconData icon, Color color, VoidCallback onTap) {
+    final t = context.eco;
+    // Tappable, so each keeps its border; each category has its own tint.
+    Widget tile(
+      String label,
+      IconData icon,
+      Color tint,
+      VoidCallback onTap, {
+      String? subtitle,
+    }) {
       return Expanded(
-        child: Material(
-          color: color,
-          borderRadius: BorderRadius.circular(16),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
-              child: Column(
-                children: [
-                  Icon(icon, color: EcoColors.forest),
-                  const SizedBox(height: 8),
-                  Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
+        child: InteractiveSurface(
+          onTap: onTap,
+          chevron: false,
+          color: tint,
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
+          child: Column(
+            children: [
+              Icon(icon, color: t.accentText),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: t.textPrimary,
+                ),
               ),
-            ),
+              if (subtitle != null)
+                Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: t.textSecondary),
+                ),
+            ],
           ),
         ),
       );
@@ -187,22 +201,24 @@ class _TileRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          tile('Find Native Plants', Icons.eco, EcoColors.leaf, onFindPlants),
+          tile('Find Native Plants', Icons.eco, t.tileGreen, onFindPlants),
           const SizedBox(width: 12),
           tile(
             'Small Space',
             Icons.local_florist,
-            EcoColors.clay,
+            t.tileClay,
             onSmallSpace,
+            subtitle: 'Balcony or containers',
           ),
           const SizedBox(width: 12),
-          tile('My Plan', Icons.checklist, EcoColors.sand, onMyPlan),
+          tile('My Plan', Icons.checklist, t.tileSand, onMyPlan),
         ],
       ),
     );
   }
 }
 
+/// Read-only: an information surface.
 class _TipCard extends StatelessWidget {
   const _TipCard({required this.text, required this.draft});
   final String text;
@@ -210,33 +226,29 @@ class _TipCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: EcoColors.tip,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    final t = context.eco;
+    return InfoSurface(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.lightbulb_outline, color: EcoColors.forest),
+          Icon(Icons.lightbulb_outline, color: t.accentText),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "This month's tip",
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                    color: t.textPrimary,
                   ),
                 ),
-                Text(text, style: const TextStyle(color: Colors.black87)),
+                Text(text, style: TextStyle(color: t.textPrimary)),
                 if (draft)
-                  const Text(
+                  Text(
                     'Draft content, not yet reviewed.',
-                    style: TextStyle(fontSize: 12, color: Colors.black54),
+                    style: TextStyle(fontSize: 12, color: t.textSecondary),
                   ),
               ],
             ),

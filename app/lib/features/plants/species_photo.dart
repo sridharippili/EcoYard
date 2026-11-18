@@ -1,6 +1,9 @@
 import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../app/bird_icon.dart';
+import '../../app/theme.dart';
+
 /// How a hero photo is shaped: its own aspect ratio, kept within limits so
 /// a very tall or very wide picture cannot take over the screen. Within the
 /// limits nothing is cropped; outside them the crop favours the upper part,
@@ -8,7 +11,9 @@ import 'package:material_ui/material_ui.dart';
 double heroAspect(PhotoCredit? c) {
   const narrowest = 0.8; // tallest we allow (taller photos lose their foot)
   const widest = 1.6;
-  final a = c?.aspectRatio ?? 1.33;
+  // No photo: a shallow banner, so the placeholder does not take the screen.
+  if (c == null) return 2.2;
+  final a = c.aspectRatio ?? 1.33;
   return a.clamp(narrowest, widest);
 }
 
@@ -25,6 +30,7 @@ class SpeciesPhoto extends StatelessWidget {
     required this.height,
     this.radius = 12,
     this.placeholderLabel,
+    this.birdPlaceholder = false,
   }) : keepShape = false;
 
   /// A large photo that keeps its own shape instead of being cut to a fixed
@@ -34,6 +40,7 @@ class SpeciesPhoto extends StatelessWidget {
     required this.credit,
     this.radius = 14,
     this.placeholderLabel,
+    this.birdPlaceholder = false,
   }) : width = double.infinity,
        height = 0,
        keepShape = true;
@@ -49,9 +56,11 @@ class SpeciesPhoto extends StatelessWidget {
   /// Shown under the leaf when there is no photo and there is room.
   final String? placeholderLabel;
 
+  /// With no photo, draw a bird silhouette instead of a leaf (for birds).
+  final bool birdPlaceholder;
+
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final shape = BorderRadius.circular(radius);
     final c = credit;
     if (keepShape) {
@@ -65,6 +74,7 @@ class SpeciesPhoto extends StatelessWidget {
             height: box.maxHeight,
             radius: radius,
             placeholderLabel: placeholderLabel,
+            birdPlaceholder: birdPlaceholder,
           ),
         ),
       );
@@ -74,14 +84,24 @@ class SpeciesPhoto extends StatelessWidget {
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: scheme.primaryContainer,
+          color: context.eco.surfaceInfo,
           borderRadius: shape,
         ),
         alignment: Alignment.center,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.eco, size: height < 80 ? height * 0.5 : 48),
+            if (birdPlaceholder)
+              IconTheme(
+                data: IconThemeData(color: context.eco.accentText),
+                child: BirdIcon(size: height < 80 ? height * 0.5 : 64),
+              )
+            else
+              Icon(
+                Icons.eco,
+                size: height < 80 ? height * 0.5 : 48,
+                color: context.eco.accentText,
+              ),
             if (placeholderLabel != null && height >= 80) ...[
               const SizedBox(height: 4),
               Text(placeholderLabel!),

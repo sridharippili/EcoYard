@@ -12,21 +12,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'fakes.dart';
+import 'filters.dart';
 
 Future<void> tab(WidgetTester tester, String name) async {
   await tester.tap(find.text(name).last);
   await tester.pumpAndSettle();
 }
-
-/// A chip with [label] inside the screen of type [T] (several screens have a
-/// "Yard" chip at once because the tabs stay built).
-Finder chipIn<T extends Widget>(String label) => find.descendant(
-  of: find.byType(T),
-  matching: find.widgetWithText(ChoiceChip, label),
-);
-
-bool selected<T extends Widget>(WidgetTester tester, String label) =>
-    tester.widget<ChoiceChip>(chipIn<T>(label)).selected;
 
 PlanCandidate cand(String id) =>
     PlanCandidate.fromAction(realAppContent().repo.actionById(id)!);
@@ -112,6 +103,15 @@ void main() {
       await pumpApp(tester, fakeEnv());
       await tab(tester, 'Settings');
       expect(find.textContaining('sent online to NatureLM'), findsOneWidget);
+      expect(
+        find.textContaining('NatureLM and BirdNET at the same time'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('or to BirdNET'),
+        findsNothing,
+        reason: 'the old "fallback only" wording must be gone',
+      );
       expect(find.textContaining('up to them'), findsOneWidget);
       expect(
         find.textContaining('does not save it on your phone'),
@@ -169,9 +169,9 @@ void main() {
       final st = seeded();
       await pumpApp(tester, fakeEnv(storage: st));
       await tab(tester, 'Settings');
-      await tester.tap(chipIn<SettingsScreen>('Balcony'));
+      await choose<SettingsScreen>(tester, 'Balcony');
       await tester.pumpAndSettle();
-      expect(selected<SettingsScreen>(tester, 'Balcony'), isTrue);
+      expect(isChosen<SettingsScreen>(tester, 'Balcony'), isTrue);
       expect(
         AppSettings.fromMap(await st.settings.loadAll()).defaultSpace,
         SpaceType.balcony,
@@ -186,11 +186,11 @@ void main() {
       await pumpApp(tester, fakeEnv(storage: st));
       await tab(tester, 'Settings');
       mem.failNext = StateError('disk');
-      await tester.tap(chipIn<SettingsScreen>('Balcony'));
+      await choose<SettingsScreen>(tester, 'Balcony');
       await tester.pumpAndSettle();
       expect(find.textContaining("Couldn't save that"), findsOneWidget);
-      expect(selected<SettingsScreen>(tester, 'Yard'), isTrue);
-      expect(selected<SettingsScreen>(tester, 'Balcony'), isFalse);
+      expect(isChosen<SettingsScreen>(tester, 'Yard'), isTrue);
+      expect(isChosen<SettingsScreen>(tester, 'Balcony'), isFalse);
     });
 
     testWidgets('saved defaults are the starting point of the Plants tab', (
@@ -205,9 +205,9 @@ void main() {
       );
       await pumpApp(tester, fakeEnv(storage: st));
       await tab(tester, 'Plants');
-      expect(selected<PlantFinderScreen>(tester, 'Containers'), isTrue);
-      expect(selected<PlantFinderScreen>(tester, 'Shade'), isTrue);
-      expect(selected<PlantFinderScreen>(tester, 'Free only'), isTrue);
+      expect(isChosen<PlantFinderScreen>(tester, 'Containers'), isTrue);
+      expect(isChosen<PlantFinderScreen>(tester, 'Shade'), isTrue);
+      expect(isChosen<PlantFinderScreen>(tester, 'Free only'), isTrue);
     });
 
     testWidgets('"Find Native Plants" starts from the saved defaults', (
@@ -215,12 +215,12 @@ void main() {
     ) async {
       await pumpApp(tester, fakeEnv(storage: seeded()));
       await tab(tester, 'Settings');
-      await tester.tap(chipIn<SettingsScreen>('Balcony'));
+      await choose<SettingsScreen>(tester, 'Balcony');
       await tester.pumpAndSettle();
       await tab(tester, 'Home');
       await tester.tap(find.text('Find Native Plants'));
       await tester.pumpAndSettle();
-      expect(selected<PlantFinderScreen>(tester, 'Balcony'), isTrue);
+      expect(isChosen<PlantFinderScreen>(tester, 'Balcony'), isTrue);
     });
 
     testWidgets('"Small Space" sets Balcony for the visit but uses saved sun '
@@ -229,8 +229,8 @@ void main() {
       await pumpApp(tester, fakeEnv(storage: st));
       await tester.tap(find.text('Small Space'));
       await tester.pumpAndSettle();
-      expect(selected<PlantFinderScreen>(tester, 'Balcony'), isTrue);
-      expect(selected<PlantFinderScreen>(tester, 'Shade'), isTrue);
+      expect(isChosen<PlantFinderScreen>(tester, 'Balcony'), isTrue);
+      expect(isChosen<PlantFinderScreen>(tester, 'Shade'), isTrue);
       expect(
         AppSettings.fromMap(await st.settings.loadAll()).defaultSpace,
         SpaceType.yard,
@@ -242,20 +242,20 @@ void main() {
         'user adjusted keeps their choice', (tester) async {
       await pumpApp(tester, fakeEnv(storage: seeded()));
       await tab(tester, 'Settings');
-      await tester.tap(chipIn<SettingsScreen>('Balcony'));
+      await choose<SettingsScreen>(tester, 'Balcony');
       await tester.pumpAndSettle();
       await tab(tester, 'Plants');
-      expect(selected<PlantFinderScreen>(tester, 'Balcony'), isTrue);
+      expect(isChosen<PlantFinderScreen>(tester, 'Balcony'), isTrue);
 
       // Now the user adjusts the Plants tab; a later default change leaves it.
-      await tester.tap(chipIn<PlantFinderScreen>('Shade'));
+      await choose<PlantFinderScreen>(tester, 'Shade');
       await tester.pumpAndSettle();
       await tab(tester, 'Settings');
-      await tester.tap(chipIn<SettingsScreen>('Containers'));
+      await choose<SettingsScreen>(tester, 'Containers');
       await tester.pumpAndSettle();
       await tab(tester, 'Plants');
-      expect(selected<PlantFinderScreen>(tester, 'Balcony'), isTrue);
-      expect(selected<PlantFinderScreen>(tester, 'Shade'), isTrue);
+      expect(isChosen<PlantFinderScreen>(tester, 'Balcony'), isTrue);
+      expect(isChosen<PlantFinderScreen>(tester, 'Shade'), isTrue);
     });
 
     testWidgets('bird advice starts from the saved defaults ("Any" means '
@@ -272,9 +272,9 @@ void main() {
         fakeEnv(providers: [answering('Northern Cardinal')], storage: st),
       );
       await recordAndStop(tester);
-      expect(selected<BirdDetailsPanel>(tester, 'Containers'), isTrue);
-      expect(selected<BirdDetailsPanel>(tester, 'Shade'), isTrue);
-      expect(selected<BirdDetailsPanel>(tester, 'Free + low cost'), isTrue);
+      expect(isChosen<BirdDetailsPanel>(tester, 'Containers'), isTrue);
+      expect(isChosen<BirdDetailsPanel>(tester, 'Shade'), isTrue);
+      expect(isChosen<BirdDetailsPanel>(tester, 'Free + low cost'), isTrue);
     });
 
     testWidgets('a saved "Free only" budget carries into bird advice', (
@@ -286,7 +286,7 @@ void main() {
         fakeEnv(providers: [answering('Northern Cardinal')], storage: st),
       );
       await recordAndStop(tester);
-      expect(selected<BirdDetailsPanel>(tester, 'Free only'), isTrue);
+      expect(isChosen<BirdDetailsPanel>(tester, 'Free only'), isTrue);
     });
 
     testWidgets('a visible bird result is not changed by a new default', (
@@ -299,10 +299,10 @@ void main() {
       );
       await recordAndStop(tester);
       await tab(tester, 'Settings');
-      await tester.tap(chipIn<SettingsScreen>('Balcony'));
+      await choose<SettingsScreen>(tester, 'Balcony');
       await tester.pumpAndSettle();
       await tab(tester, 'Birds');
-      expect(selected<BirdDetailsPanel>(tester, 'Yard'), isTrue);
+      expect(isChosen<BirdDetailsPanel>(tester, 'Yard'), isTrue);
     });
   });
 
@@ -531,7 +531,7 @@ void main() {
         fakeEnv(providers: [answering('Northern Cardinal')], storage: st),
       );
       await tab(tester, 'Plants');
-      await tester.tap(chipIn<PlantFinderScreen>('Shade'));
+      await choose<PlantFinderScreen>(tester, 'Shade');
       await tester.pumpAndSettle();
       await recordAndStop(tester); // a bird result is on screen
       expect(find.text('Simple actions'), findsOneWidget);
@@ -548,8 +548,8 @@ void main() {
       await tab(tester, 'My Plan');
       expect(find.textContaining('Nothing here yet'), findsOneWidget);
       await tab(tester, 'Plants');
-      expect(selected<PlantFinderScreen>(tester, 'Yard'), isTrue);
-      expect(selected<PlantFinderScreen>(tester, 'Full sun'), isTrue);
+      expect(isChosen<PlantFinderScreen>(tester, 'Yard'), isTrue);
+      expect(isChosen<PlantFinderScreen>(tester, 'Full sun'), isTrue);
     });
 
     testWidgets('a failed erase says so, keeps the data and the app as it '
@@ -620,6 +620,10 @@ void main() {
       expect(find.textContaining('Draft summary'), findsOneWidget);
       expect(
         find.textContaining('sent over the internet to NatureLM'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('to NatureLM and to BirdNET at the same time'),
         findsOneWidget,
       );
       expect(find.textContaining('up to them'), findsOneWidget);

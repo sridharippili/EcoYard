@@ -7,17 +7,19 @@ import 'package:ecoyard/main.dart' show EcoYardApp;
 import 'package:ecoyard/app/content.dart';
 import 'package:ecoyard/features/birds/bird_details.dart';
 import 'package:ecoyard_core/ecoyard_core.dart';
+import 'package:ecoyard/app/surfaces.dart';
+import 'package:ecoyard/app/theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'fakes.dart';
+import 'filters.dart';
+import 'contrast.dart';
 import 'plan_controller_test.dart' show SpyStore;
 
-Finder addButton() => find.byWidgetPredicate(
-  (w) =>
-      w is FilledButton &&
-      w.child is Text &&
-      ((w.child! as Text).data ?? '').startsWith('Add '),
+Finder addButton() => find.ancestor(
+  of: find.textContaining('Add '),
+  matching: find.byType(FilledButton),
 );
 
 HabitatRecommendation rec(
@@ -150,7 +152,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Native plants for birds'), findsOneWidget);
-      expect(addButton(), findsNothing);
+      expect(addButton(), findsOneWidget);
     });
 
     testWidgets('an unknown bird the provider is unsure about gets none', (
@@ -235,10 +237,10 @@ void main() {
         now: () => DateTime.utc(2026, hit.month, 10),
       );
       if (hit.space != SpaceType.yard) {
-        await tester.tap(
-          find.text(hit.space == SpaceType.balcony ? 'Balcony' : 'Containers'),
+        await chooseVisible(
+          tester,
+          hit.space == SpaceType.balcony ? 'Balcony' : 'Containers',
         );
-        await tester.pumpAndSettle();
       }
       expect(find.byType(Checkbox), findsOneWidget);
       expect(find.text('Add 1 to my plan'), findsOneWidget);
@@ -308,18 +310,13 @@ void main() {
     testWidgets('Try again gives fresh ticks and choices', (tester) async {
       await identify(tester, 'Northern Cardinal');
       await tester.tap(find.byType(Checkbox).first);
-      await tester.tap(find.text('Balcony'));
+      await chooseVisible(tester, 'Balcony');
       await tester.pumpAndSettle();
       await tester.tap(find.text('Try again'));
       await tester.pumpAndSettle();
       final boxes = tester.widgetList<Checkbox>(find.byType(Checkbox));
       expect(boxes.every((b) => b.value == true), isTrue);
-      expect(
-        tester
-            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Yard'))
-            .selected,
-        isTrue,
-      );
+      expect(isChosenVisible(tester, 'Yard'), isTrue);
     });
 
     testWidgets('adding the same bird twice says it was already there', (
@@ -417,16 +414,36 @@ void main() {
   });
 
   group('looks', () {
-    testWidgets('in dark mode the advice card keeps a light theme', (
-      tester,
-    ) async {
+    testWidgets('in dark mode the advice card follows the dark theme and its '
+        'text is readable on its surface', (tester) async {
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
       addTearDown(tester.platformDispatcher.clearAllTestValues);
       await identify(tester, 'Northern Cardinal');
       final panel = tester.element(find.byType(BirdDetailsPanel));
-      expect(Theme.of(panel).brightness, Brightness.light);
-      final shell = tester.element(find.text('Identify a Bird'));
-      expect(Theme.of(shell).brightness, Brightness.dark);
+      expect(Theme.of(panel).brightness, Brightness.dark);
+      final text = DefaultTextStyle.of(panel).style.color!;
+      final t = panel.eco;
+      expect(contrastRatio(text, t.surfaceInfo), greaterThanOrEqualTo(4.5));
+    });
+
+    testWidgets('the bird result is flat: no tappable surface sits inside a '
+        'tinted one', (tester) async {
+      await identify(tester, 'Northern Cardinal');
+      expect(find.byType(InteractiveSurface), findsWidgets);
+      expect(
+        find.descendant(
+          of: find.byType(InfoSurface),
+          matching: find.byType(InteractiveSurface),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(InfoSurface),
+          matching: find.byType(InfoSurface),
+        ),
+        findsNothing,
+      );
     });
 
     for (final scale in [1.0, 2.0]) {

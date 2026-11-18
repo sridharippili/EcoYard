@@ -1,8 +1,10 @@
 import 'package:bird_audio/bird_audio.dart';
+import 'package:ecoyard/app/theme.dart';
 import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'contrast.dart';
 import 'fakes.dart';
 
 const nj = Place(
@@ -33,72 +35,59 @@ Future<void> tab(WidgetTester tester, String name) async {
   await tester.pumpAndSettle();
 }
 
-/// The card has a light blue background, so its text and icons must be dark
-/// whatever the phone's theme is. (On a phone in dark mode the default text
-/// colour is near-white, which was unreadable on the light blue.)
-double textLuminance(WidgetTester tester, Finder f) {
-  final c = DefaultTextStyle.of(tester.element(f)).style.color;
-  return (c ?? const Color(0xFFFFFFFF)).computeLuminance();
-}
-
-double iconLuminance(WidgetTester tester, Finder f) {
-  final c = IconTheme.of(tester.element(f)).color;
-  return (c ?? const Color(0xFFFFFFFF)).computeLuminance();
-}
-
 void main() {
-  group('readable in dark mode', () {
-    setUp(() {});
-
-    testWidgets('asking for a place: dark text on the light card', (
-      tester,
-    ) async {
-      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
-      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
-      await pumpApp(tester, fakeEnv());
-      expect(textLuminance(tester, find.text('Weather')), lessThan(0.2));
-      expect(
-        textLuminance(tester, find.textContaining('approximate location')),
-        lessThan(0.2),
-      );
-    });
-
-    testWidgets('the EcoYard title is light on the dark screen', (
-      tester,
-    ) async {
-      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
-      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
-      await pumpApp(tester, fakeEnv());
-      final colour = tester.widget<Text>(find.text('EcoYard')).style?.color;
-      expect(
-        colour!.computeLuminance(),
-        greaterThan(0.2),
-        reason: 'dark green on near-black was hard to see',
-      );
-    });
-
-    testWidgets('showing the weather: dark text and icons on the light card', (
-      tester,
-    ) async {
-      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
-      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
-      await pumpApp(
+  group('readable in both light and dark', () {
+    for (final mode in [Brightness.light, Brightness.dark]) {
+      testWidgets('asking for a place, $mode: text is readable on the card', (
         tester,
-        fakeEnv(
-          storage: storage(settings: placeSettings(nj)),
-          weather: FakeWeather(),
-        ),
-      );
-      expect(textLuminance(tester, find.textContaining('°F')), lessThan(0.2));
-      expect(
-        textLuminance(tester, find.textContaining('Basking Ridge')),
-        lessThan(0.2),
-      );
-      expect(
-        iconLuminance(tester, find.byIcon(Icons.place_outlined)),
-        lessThan(0.2),
-      );
-    });
+      ) async {
+        tester.platformDispatcher.platformBrightnessTestValue = mode;
+        addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+        await pumpApp(tester, fakeEnv());
+        final el = tester.element(find.text('Weather'));
+        final t = el.eco;
+        final c = DefaultTextStyle.of(el).style.color!;
+        expect(contrastRatio(c, t.surfaceInfo), greaterThanOrEqualTo(4.5));
+      });
+
+      testWidgets('showing the weather, $mode: text and icons are readable '
+          'on the card', (tester) async {
+        tester.platformDispatcher.platformBrightnessTestValue = mode;
+        addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+        await pumpApp(
+          tester,
+          fakeEnv(
+            storage: storage(settings: placeSettings(nj)),
+            weather: FakeWeather(),
+          ),
+        );
+        final temp = tester.element(find.textContaining('°F'));
+        final t = temp.eco;
+        expect(
+          contrastRatio(DefaultTextStyle.of(temp).style.color!, t.surfaceInfo),
+          greaterThanOrEqualTo(4.5),
+        );
+        final icon = tester.element(find.byIcon(Icons.place_outlined));
+        expect(
+          contrastRatio(IconTheme.of(icon).color!, t.surfaceInfo),
+          greaterThanOrEqualTo(3.0),
+        );
+      });
+
+      testWidgets('the EcoYard title is readable on the page, $mode', (
+        tester,
+      ) async {
+        tester.platformDispatcher.platformBrightnessTestValue = mode;
+        addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+        await pumpApp(tester, fakeEnv());
+        final el = tester.element(find.text('EcoYard'));
+        final colour = tester.widget<Text>(find.text('EcoYard')).style!.color!;
+        expect(
+          contrastRatio(colour, el.eco.background),
+          greaterThanOrEqualTo(4.5),
+        );
+      });
+    }
   });
 
   group('before a place is chosen', () {

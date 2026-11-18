@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fakes.dart';
+import 'filters.dart';
 
 HabitatRecommendation expected(
   String birdId, {
@@ -24,11 +25,9 @@ HabitatRecommendation expected(
   );
 }
 
-Finder addButton() => find.byWidgetPredicate(
-  (w) =>
-      w is FilledButton &&
-      w.child is Text &&
-      ((w.child! as Text).data ?? '').startsWith('Add '),
+Finder addButton() => find.ancestor(
+  of: find.textContaining('Add '),
+  matching: find.byType(FilledButton),
 );
 
 void main() {
@@ -218,7 +217,7 @@ void main() {
   testWidgets('"Free only" removes the plants and says why', (tester) async {
     await pumpApp(tester, fakeEnv(providers: [answering('Northern Cardinal')]));
     await recordAndStop(tester);
-    await tester.tap(find.text('Free only'));
+    await chooseVisible(tester, 'Free only');
     await tester.pumpAndSettle();
     expect(find.textContaining('No plant in our list fits'), findsOneWidget);
     // Plants that exist but cost something are counted, not hidden silently.
@@ -236,15 +235,15 @@ void main() {
     await recordAndStop(tester);
     await tester.tap(find.byType(Checkbox).first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Balcony'));
+    await chooseVisible(tester, 'Balcony');
     await tester.pumpAndSettle();
     final boxes = tester.widgetList<Checkbox>(find.byType(Checkbox));
     expect(boxes, hasLength(rec.actions.length));
     expect(boxes.every((b) => b.value == true), isTrue);
   });
 
-  testWidgets('a bird we have no content for gets general advice, no plan '
-      'button', (tester) async {
+  testWidgets('a bird we have no content for gets general advice and can add '
+      'it to the plan', (tester) async {
     await pumpApp(
       tester,
       fakeEnv(providers: [answering('Laughing Kookaburra')]),
@@ -256,7 +255,30 @@ void main() {
     );
     expect(find.text('Simple actions'), findsOneWidget);
     expect(find.text('How to support this bird'), findsNothing);
-    expect(addButton(), findsNothing);
+    expect(addButton(), findsOneWidget);
+  });
+
+  testWidgets('adding for a bird we have no content for saves the general '
+      'actions, names the bird, and the plan counts it as another bird', (
+    tester,
+  ) async {
+    final store = InMemoryPlanStore();
+    await pumpApp(
+      tester,
+      fakeEnv(providers: [answering('Laughing Kookaburra')], store: store),
+    );
+    await recordAndStop(tester);
+    await tester.tap(addButton());
+    await tester.pumpAndSettle();
+    final saved = await store.load();
+    expect(saved, isNotEmpty);
+    expect(saved.first.birdIds, ['other-laughing-kookaburra']);
+    expect(find.text('My Habitat Plan'), findsOneWidget);
+    expect(
+      find.textContaining('added for Laughing Kookaburra'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('For 1 other bird'), findsWidgets);
   });
 
   testWidgets('a non-bird sound gets no advice at all', (tester) async {

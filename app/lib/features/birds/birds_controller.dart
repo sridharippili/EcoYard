@@ -28,6 +28,23 @@ class BirdsController extends ChangeNotifier {
   ChainOutcome? outcome;
   NoProviderAnsweredException? failure;
 
+  /// True while [outcome] is a quick answer and a better-ranked service is
+  /// still working. It may be replaced.
+  bool refining = false;
+
+  /// Set when the better service finished and agreed with the quick answer:
+  /// the service's name.
+  String? confirmedBy;
+
+  /// Set when the better service finished and replaced the quick answer:
+  /// what the quick answer had said, and who replaced it.
+  String? replacedAnswer;
+  String? replacedBy;
+
+  /// Which identification run is current. An answer from an older run (the
+  /// user recorded again, or tapped Done) is ignored.
+  int _run = 0;
+
   /// Set for problems that are not about the services (permission, recorder).
   String? localError;
 
@@ -72,17 +89,37 @@ class BirdsController extends ChangeNotifier {
 
   /// Clears the result and discards the in-memory recording.
   void dismiss() {
+    _run++;
     _clip = null;
     outcome = null;
+    _clearRefinement();
     failure = null;
     localError = null;
     phase = BirdsPhase.idle;
     _notify();
   }
 
+  void _clearRefinement() {
+    refining = false;
+    confirmedBy = null;
+    replacedAnswer = null;
+    replacedBy = null;
+  }
+
+  /// Whether two answers name the same bird.
+  static bool _sameBird(Detection a, Detection b) {
+    final sa = a.scientificName?.trim().toLowerCase();
+    final sb = b.scientificName?.trim().toLowerCase();
+    if (sa != null && sb != null && sa.isNotEmpty && sa == sb) return true;
+    return a.speciesText.trim().toLowerCase() ==
+        b.speciesText.trim().toLowerCase();
+  }
+
   Future<void> _startRecording() async {
+    _run++;
     _clip = null;
     outcome = null;
+    _clearRefinement();
     failure = null;
     localError = null;
     micDenied = false;
@@ -128,16 +165,49 @@ class BirdsController extends ChangeNotifier {
   }
 
   Future<void> _identify(AudioClip clip) async {
+    final run = ++_run;
     phase = BirdsPhase.identifying;
     outcome = null;
     failure = null;
     localError = null;
+    _clearRefinement();
     _notify();
 
     try {
-      outcome = await _chain.identify(clip);
-      phase = BirdsPhase.result;
+      // A quick answer is shown the moment any service gives one; a better
+      // service's answer then confirms or replaces it.
+      await for (final p in _chain.identifyProgressive(clip)) {
+        if (run != _run || _disposed) return;
+        if (!p.isFinal) {
+          outcome = p.outcome;
+          refining = true;
+          phase = BirdsPhase.result;
+        } else {
+          final shown = outcome;
+          if (shown != null &&
+              _sameBird(shown.result.top, p.outcome.result.top)) {
+            // Same bird: keep what is on screen (and the user's ticks) and
+            // just say who confirmed it.
+            confirmedBy = p.outcome.result.providerLabel;
+          } else {
+            if (shown != null) {
+              replacedAnswer = shown.result.top.speciesText;
+              replacedBy = p.outcome.result.providerLabel;
+            }
+            outcome = p.outcome;
+          }
+          refining = false;
+          phase = BirdsPhase.result;
+        }
+        _notify();
+      }
+      if (run != _run || _disposed) return;
+      // Ended without a final answer (should not happen): stop "refining".
+      refining = false;
     } on NoProviderAnsweredException catch (e) {
+      if (run != _run || _disposed) return;
+      refining = false;
+      outcome = null;
       failure = e;
       phase = BirdsPhase.failed;
     }

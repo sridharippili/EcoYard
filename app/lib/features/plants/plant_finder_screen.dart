@@ -7,6 +7,10 @@ import '../../app/content.dart';
 import 'plant_detail_screen.dart';
 import 'species_photo.dart';
 import 'plant_finder_controller.dart';
+import '../../app/filter_menus.dart';
+import '../../app/surfaces.dart';
+import '../weather/place_picker.dart';
+import '../weather/weather_controller.dart';
 import 'plant_labels.dart';
 
 /// The Plants tab: native plants that fit the user's space, sun and budget.
@@ -15,15 +19,19 @@ class PlantFinderScreen extends StatelessWidget {
     super.key,
     required this.controller,
     required this.content,
+    this.weather,
   });
 
   final PlantFinderController controller;
   final AppContent content;
 
+  /// Holds the town the user chose, and opens the picker to change it.
+  final WeatherController? weather;
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: controller,
+      listenable: Listenable.merge([controller, ?weather]),
       builder: (context, _) {
         final text = Theme.of(context).textTheme;
         final r = controller.result;
@@ -37,13 +45,8 @@ class PlantFinderScreen extends StatelessWidget {
               style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 4),
-            Row(
-              children: [
-                const Icon(Icons.place_outlined, size: 16),
-                const SizedBox(width: 4),
-                Expanded(child: Text(regionLabel(repo.region))),
-              ],
-            ),
+            const SizedBox(height: 8),
+            _LocationRow(region: regionLabel(repo.region), weather: weather),
             const SizedBox(height: 12),
             _Filters(controller: controller),
             const SizedBox(height: 12),
@@ -59,15 +62,18 @@ class PlantFinderScreen extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               for (final p in r.plants)
-                _PlantCard(
-                  plant: p,
-                  photo: content.photos.forPlant(p.plant.id),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => PlantDetailScreen(
-                        plant: p,
-                        content: content,
-                        draft: draft,
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _PlantCard(
+                    plant: p,
+                    photo: content.photos.forPlant(p.plant.id),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => PlantDetailScreen(
+                          plant: p,
+                          content: content,
+                          draft: draft,
+                        ),
                       ),
                     ),
                   ),
@@ -98,62 +104,93 @@ class PlantFinderScreen extends StatelessWidget {
   }
 }
 
+/// Where the plants are for: a bordered row with the town (or the region) and
+/// a Change action, like the mockup. The list itself is for the whole region;
+/// the town is the user's own place, shared with the weather card.
+class _LocationRow extends StatelessWidget {
+  const _LocationRow({required this.region, required this.weather});
+  final String region;
+  final WeatherController? weather;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.eco;
+    final place = weather?.place;
+    final w = weather;
+    return InteractiveSurface(
+      chevron: false,
+      padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+      onTap: w == null ? null : () => showPlacePicker(context, w),
+      child: Row(
+        children: [
+          Icon(Icons.place_outlined, color: t.accentText),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  place == null ? region : '${place.label} (approximate)',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                if (place != null)
+                  Text(
+                    'Plants for $region',
+                    style: TextStyle(fontSize: 12, color: t.textSecondary),
+                  ),
+              ],
+            ),
+          ),
+          if (w != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                'Change',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: t.accentText,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _Filters extends StatelessWidget {
   const _Filters({required this.controller});
   final PlantFinderController controller;
 
   @override
   Widget build(BuildContext context) {
-    Widget row<T>(
-      String label,
-      List<(T, String)> options,
-      T value,
-      void Function(T) set,
-    ) => Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Wrap(
-        spacing: 6,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 72),
-            child: Text(label),
-          ),
-          for (final (v, text) in options)
-            ChoiceChip(
-              label: Text(text),
-              selected: v == value,
-              showCheckmark: true,
-              onSelected: (_) => set(v),
-            ),
-        ],
-      ),
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        row<SpaceType>(
-          'My space',
-          [for (final s in SpaceType.values) (s, spaceLabel(s))],
-          controller.space,
-          controller.setSpace,
+    return FilterMenuRow(
+      menus: [
+        FilterMenu<SpaceType>(
+          key: filterSpaceKey,
+          label: 'My space',
+          value: controller.space,
+          options: [for (final s in SpaceType.values) (s, spaceLabel(s))],
+          onChanged: controller.setSpace,
         ),
-        row<SunExposure>(
-          'Sunlight',
-          [for (final s in SunExposure.values) (s, sunLabel(s))],
-          controller.sun,
-          controller.setSun,
+        FilterMenu<SunExposure>(
+          key: filterSunKey,
+          label: 'Sunlight',
+          value: controller.sun,
+          options: [for (final s in SunExposure.values) (s, sunLabel(s))],
+          onChanged: controller.setSun,
         ),
-        row<BudgetTier>(
-          'Budget',
-          const [
+        FilterMenu<BudgetTier>(
+          key: filterBudgetKey,
+          label: 'Budget',
+          value: controller.budget,
+          options: const [
             (BudgetTier.low, 'Low cost'),
             (BudgetTier.free, 'Free only'),
             (BudgetTier.any, 'Any'),
           ],
-          controller.budget,
-          controller.setBudget,
+          onChanged: controller.setBudget,
         ),
       ],
     );
@@ -165,20 +202,17 @@ class _FreeStep extends StatelessWidget {
   final HabitatAction action;
 
   @override
-  Widget build(BuildContext context) => Card(
-    color: Theme.of(context).colorScheme.primaryContainer,
-    child: Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Free first step: ${action.title}',
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-          Text(action.body),
-        ],
-      ),
+  Widget build(BuildContext context) => InfoSurface(
+    padding: const EdgeInsets.all(12),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Free first step: ${action.title}',
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+        Text(action.body),
+      ],
     ),
   );
 }
@@ -232,18 +266,17 @@ class _PlantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = plant.plant;
-    final tags = [
-      nativityLabel(p.nativity),
-      plantCostLabel(p.costTier),
-      if (p.water == WaterNeed.low) waterLabel(p.water),
-      'Blooms ${bloomRange(p)}',
-    ];
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
+    // Two badges at most, by priority: where it is native, then what it costs.
+    final tags = [nativityBadge(p.nativity), plantCostLabel(p.costTier)];
+    // Tappable: an interactive surface (raised, bordered, with a chevron).
+    return InteractiveSurface(
+      onTap: onTap,
+      chevron: false,
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SpeciesPhoto(credit: photo, width: 64, height: 64),
@@ -260,36 +293,53 @@ class _PlantCard extends StatelessWidget {
                       ),
                     ),
                     Text(supportLine(plant)),
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: [for (final t in tags) _Tag(t)],
-                    ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right),
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: Icon(
+                  Icons.chevron_right,
+                  color: context.eco.textSecondary,
+                ),
+              ),
             ],
           ),
-        ),
+          const SizedBox(height: 8),
+          // Full card width, so the two badges stay on one line.
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [for (final t in tags) _Tag(t, cost: p.costTier)],
+          ),
+        ],
       ),
     );
   }
 }
 
+/// A small read-only pill. The cost one uses the Free / Low cost badge
+/// colours; the others are neutral.
 class _Tag extends StatelessWidget {
-  const _Tag(this.text);
+  const _Tag(this.text, {required this.cost});
   final String text;
+  final CostTier cost;
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.secondaryContainer,
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: Text(text, style: const TextStyle(fontSize: 11)),
-  );
+  Widget build(BuildContext context) {
+    final t = context.eco;
+    final isCost = text == plantCostLabel(cost);
+    final free = cost == CostTier.free;
+    return InfoPill(
+      label: text,
+      background: isCost
+          ? (free ? t.badgeFree : t.badgeLowCost)
+          : t.surfaceInfo,
+      foreground: isCost
+          ? (free ? t.badgeFreeOn : t.badgeLowCostOn)
+          : t.textSecondary,
+    );
+  }
 }
 
 /// Photo stand-in for the detail screen, when a plant has no credited photo.

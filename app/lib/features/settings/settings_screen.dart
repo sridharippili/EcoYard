@@ -3,6 +3,8 @@ import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:material_ui/material_ui.dart';
 
+import '../../app/filter_menus.dart';
+import '../../app/surfaces.dart';
 import '../../app/theme.dart';
 
 import '../../app/content.dart';
@@ -56,15 +58,11 @@ class SettingsScreen extends StatelessWidget {
               style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 12),
-            Card(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  'Your privacy matters. You control your data. Everything '
-                  'EcoYard saves is on this device, and you can see it or '
-                  'erase it here.',
-                ),
+            const InfoSurface(
+              child: Text(
+                'Your privacy matters. You control your data. Everything '
+                'EcoYard saves is on this device, and you can see it or '
+                'erase it here.',
               ),
             ),
             if (controller.state == SettingsLoadState.failed)
@@ -101,77 +99,86 @@ class SettingsScreen extends StatelessWidget {
               'Microphone',
               'Used only while you record, after you tap Record. You can turn '
                   'it off in the iPhone Settings app, under EcoYard.',
+              status: 'Only when recording',
             ),
             ListenableBuilder(
               listenable: offline,
               builder: (context, _) => _Fact(
                 Icons.cloud_upload_outlined,
                 'Recordings',
+                status: offline.state == OfflineState.ready
+                    ? 'On phone first'
+                    : 'Sent online',
                 offline.state == OfflineState.ready
                     ? 'With the offline model on this phone, a recording is '
                           'identified here first and not sent anywhere. Only '
                           'if the phone model can\'t tell is it sent online, to '
-                          'NatureLM (or BirdNET if NatureLM is not available), '
-                          'and the result says so. EcoYard does not save it on '
+                          'NatureLM and BirdNET at the same time, and the '
+                          'result says so. EcoYard does not save it on '
                           'your phone. How those services handle it is up to '
                           'them.'
-                    : 'A recording is sent online to NatureLM (or to BirdNET '
-                          'if NatureLM is not available) to identify the bird. '
+                    : 'A recording is sent online to NatureLM and BirdNET at '
+                          'the same time, so a quick answer can show first '
+                          'while NatureLM checks it. '
                           'EcoYard does not save it on your phone. How those '
                           'services handle it is up to them. You can download '
                           'the offline model above to identify on your '
                           'phone instead.',
               ),
             ),
+            const _Fact(
+              Icons.photo_outlined,
+              'Bird photos',
+              'For a bird we have no photo of, EcoYard asks Wikimedia for one '
+                  'and sends only the bird\'s name. Nothing is saved.',
+              status: 'Name only',
+            ),
             _LocationFact(controller: controller),
             const _Fact(
               Icons.phone_iphone,
               'My plan',
               'Saved on this device only.',
+              status: 'This device',
             ),
             h('My data'),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.inventory_2_outlined),
-              title: const Text('Manage my data'),
-              subtitle: const Text('See what is saved, or copy it'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => ManageDataScreen(controller: controller),
-                ),
-              ),
-            ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(
-                Icons.delete_outline,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              title: const Text('Delete my data'),
-              subtitle: const Text('Erase my plan and settings'),
-              onTap: () => confirmAndErase(context, controller, onErased),
-            ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.policy_outlined),
-              title: const Text('Privacy policy'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => PrivacyPolicyScreen(content: content),
-                ),
-              ),
-            ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.info_outline),
-              title: const Text('About EcoYard'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => AboutScreen(content: content),
-                ),
+            // One bordered list with dividers. Delete my data is NOT in it:
+            // an irreversible action must not look like navigation.
+            InteractiveSurface(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  _NavRow(
+                    icon: Icons.inventory_2_outlined,
+                    title: 'Manage my data',
+                    subtitle: 'See what is saved, or copy it',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            ManageDataScreen(controller: controller),
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  _NavRow(
+                    icon: Icons.policy_outlined,
+                    title: 'Privacy policy',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => PrivacyPolicyScreen(content: content),
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  _NavRow(
+                    icon: Icons.info_outline,
+                    title: 'About EcoYard',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => AboutScreen(content: content),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -185,6 +192,17 @@ class SettingsScreen extends StatelessWidget {
                 'release.',
                 style: text.bodySmall,
               ),
+            const SizedBox(height: 40),
+            _DeleteButton(
+              onPressed: () => confirmAndErase(context, controller, onErased),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Erases your plan, your settings and the offline model from '
+              'this phone.',
+              textAlign: TextAlign.center,
+              style: text.bodySmall,
+            ),
           ],
         );
       },
@@ -220,36 +238,70 @@ class _LocationFact extends StatelessWidget {
           'miles, is sent to the weather service. Your device location is '
           'not used.';
     }
-    return _Fact(Icons.place_outlined, 'Location', body);
+    return _Fact(
+      Icons.place_outlined,
+      'Location',
+      body,
+      status: place == null ? 'Off' : 'On',
+    );
   }
 }
 
+/// One privacy fact as a bordered row: icon, title, what EcoYard does, and a
+/// short status. It has no switch on purpose: each of these is either decided
+/// by the iPhone (the microphone) or by an action elsewhere (the weather
+/// card, Delete my data), and a switch that controls nothing would mislead.
 class _Fact extends StatelessWidget {
-  const _Fact(this.icon, this.title, this.body);
+  const _Fact(this.icon, this.title, this.body, {this.status});
   final IconData icon;
   final String title;
   final String body;
+  final String? status;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 22),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-              Text(body),
-            ],
-          ),
+  Widget build(BuildContext context) {
+    final t = context.eco;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: InteractiveSurface(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 22, color: t.accentText),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      if (status != null)
+                        Flexible(
+                          child: InfoPill(
+                            label: status!,
+                            background: t.surfaceInfo,
+                            foreground: t.textSecondary,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(body),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 class _Defaults extends StatelessWidget {
@@ -259,56 +311,37 @@ class _Defaults extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = controller.settings;
-    Widget row<T>(
-      String label,
-      List<(T, String)> options,
-      T value,
-      Future<bool> Function(T) save,
-    ) => Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Wrap(
-        spacing: 6,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 72),
-            child: Text(label),
-          ),
-          for (final (v, t) in options)
-            ChoiceChip(
-              label: Text(t),
-              selected: v == value,
-              showCheckmark: true,
-              onSelected: (_) => save(v),
-            ),
-        ],
-      ),
-    );
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        row<SpaceType>(
-          'My space',
-          [for (final v in SpaceType.values) (v, spaceLabel(v))],
-          s.defaultSpace,
-          (v) => controller.saveDefaults(space: v),
-        ),
-        row<SunExposure>(
-          'Sunlight',
-          [for (final v in SunExposure.values) (v, sunLabel(v))],
-          s.defaultSun,
-          (v) => controller.saveDefaults(sun: v),
-        ),
-        row<BudgetTier>(
-          'Budget',
-          const [
-            (BudgetTier.low, 'Low cost'),
-            (BudgetTier.free, 'Free only'),
-            (BudgetTier.any, 'Any'),
+        FilterMenuRow(
+          menus: [
+            FilterMenu<SpaceType>(
+              key: filterSpaceKey,
+              label: 'My space',
+              value: s.defaultSpace,
+              options: [for (final v in SpaceType.values) (v, spaceLabel(v))],
+              onChanged: (v) => controller.saveDefaults(space: v),
+            ),
+            FilterMenu<SunExposure>(
+              key: filterSunKey,
+              label: 'Sunlight',
+              value: s.defaultSun,
+              options: [for (final v in SunExposure.values) (v, sunLabel(v))],
+              onChanged: (v) => controller.saveDefaults(sun: v),
+            ),
+            FilterMenu<BudgetTier>(
+              key: filterBudgetKey,
+              label: 'Budget',
+              value: s.defaultBudget,
+              options: const [
+                (BudgetTier.low, 'Low cost'),
+                (BudgetTier.free, 'Free only'),
+                (BudgetTier.any, 'Any'),
+              ],
+              onChanged: (v) => controller.saveDefaults(budget: v),
+            ),
           ],
-          s.defaultBudget,
-          (v) => controller.saveDefaults(budget: v),
         ),
         if (controller.saveError != null)
           Padding(
@@ -481,19 +514,51 @@ Future<void> confirmAndErase(
     context: context,
     builder: (ctx) => AlertDialog(
       title: const Text('Delete my data?'),
-      content: const Text(
-        'This erases your plan and your saved settings from this device and '
-        'returns EcoYard to its first launch. If you downloaded the offline '
-        'model, it is removed too. It cannot be undone.\n\n'
-        'Recordings already sent to NatureLM or BirdNET for identification '
-        'are outside the app, so they cannot be erased from here.',
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'This erases your plan and your saved settings from this device '
+              'and returns EcoYard to its first launch.',
+            ),
+            const SizedBox(height: 12),
+            const Text('It will erase:'),
+            const SizedBox(height: 4),
+            for (final line in const [
+              'Every action in your habitat plan, ticked or not',
+              'Your settings: defaults, chosen town and weekly reminder',
+              'The offline bird model, if you downloaded it (about 52 MB; '
+                  'you can download it again)',
+            ])
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text('• $line'),
+              ),
+            const SizedBox(height: 12),
+            const Text(
+              'It cannot be undone.',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Recordings already sent to NatureLM or BirdNET for '
+              'identification are outside the app, so they cannot be erased '
+              'from here.',
+            ),
+          ],
+        ),
       ),
       actions: [
-        TextButton(
+        // Cancel is the emphasised choice; the destructive one is plain text.
+        FilledButton(
+          autofocus: true,
           onPressed: () => Navigator.pop(ctx, false),
           child: const Text('Cancel'),
         ),
-        FilledButton(
+        TextButton(
+          style: TextButton.styleFrom(foregroundColor: ctx.eco.destructive),
           onPressed: () => Navigator.pop(ctx, true),
           child: const Text('Delete'),
         ),
@@ -513,6 +578,80 @@ Future<void> confirmAndErase(
     messenger.showSnackBar(
       const SnackBar(
         content: Text("Couldn't erase your data. Please try again."),
+      ),
+    );
+  }
+}
+
+/// One row of the Settings list. The list around it is the bordered surface.
+class _NavRow extends StatelessWidget {
+  const _NavRow({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.eco;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(icon, color: t.accentText),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: t.textPrimary,
+                    ),
+                  ),
+                  if (subtitle != null)
+                    Text(subtitle!, style: TextStyle(color: t.textSecondary)),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: t.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A bordered button in the destructive colour: red text, red border, no
+/// fill, no chevron. Deliberately not a list row.
+class _DeleteButton extends StatelessWidget {
+  const _DeleteButton({required this.onPressed});
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final red = context.eco.destructive;
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: const Icon(Icons.delete_outline),
+        label: const Text('Delete my data'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: red,
+          side: BorderSide(color: red, width: 1.5),
+          minimumSize: const Size.fromHeight(52),
+        ),
       ),
     );
   }

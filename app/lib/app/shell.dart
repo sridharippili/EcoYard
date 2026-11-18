@@ -21,6 +21,7 @@ import 'app_environment.dart';
 import 'bird_icon.dart';
 import 'content.dart';
 import 'glass_nav_bar.dart';
+import 'native_tab_bar.dart';
 
 /// Five-tab bottom navigation, as in the mockup.
 class Shell extends StatefulWidget {
@@ -206,7 +207,11 @@ class _ShellState extends State<Shell> {
         },
         onMyPlan: () => _showTab(3),
       ),
-      PlantFinderScreen(controller: _finder, content: widget.content),
+      PlantFinderScreen(
+        controller: _finder,
+        content: widget.content,
+        weather: _weather,
+      ),
       BirdsScreen(
         env: widget.env,
         content: widget.content,
@@ -235,37 +240,39 @@ class _ShellState extends State<Shell> {
         bottom: false,
         child: IndexedStack(index: _index, children: screens),
       ),
-      bottomNavigationBar: GlassNavBar(
-        selectedIndex: _index,
-        onSelected: _showTab,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.eco_outlined),
-            selectedIcon: Icon(Icons.eco),
-            label: 'Plants',
-          ),
-          NavigationDestination(
-            icon: BirdIcon(),
-            selectedIcon: BirdIcon(filled: true),
-            label: 'Birds',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.checklist_outlined),
-            selectedIcon: Icon(Icons.checklist),
-            label: 'My Plan',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-      ),
+      bottomNavigationBar: useSystemTabBar()
+          ? SystemTabBar(selectedIndex: _index, onSelected: _showTab)
+          : GlassNavBar(
+              selectedIndex: _index,
+              onSelected: _showTab,
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home),
+                  label: 'Home',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.eco_outlined),
+                  selectedIcon: Icon(Icons.eco),
+                  label: 'Plants',
+                ),
+                NavigationDestination(
+                  icon: BirdIcon(),
+                  selectedIcon: BirdIcon(filled: true),
+                  label: 'Birds',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.checklist_outlined),
+                  selectedIcon: Icon(Icons.checklist),
+                  label: 'My Plan',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.settings_outlined),
+                  selectedIcon: Icon(Icons.settings),
+                  label: 'Settings',
+                ),
+              ],
+            ),
     );
   }
 }

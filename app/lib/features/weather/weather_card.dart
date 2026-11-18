@@ -2,7 +2,7 @@ import 'package:bird_audio/bird_audio.dart';
 import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../app/theme.dart';
+import '../../app/surfaces.dart';
 import 'place_picker.dart';
 import 'weather_controller.dart';
 
@@ -30,36 +30,25 @@ class WeatherCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: controller,
-      // The card is always light blue, so what is drawn on it uses the light
-      // theme even when the phone is in dark mode.
-      builder: (context, _) => Theme(
-        data: ecoTheme(Brightness.light),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: EcoColors.water,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Material(
-            type: MaterialType.transparency,
-            child: switch (controller.state) {
-              WeatherState.noPlace => _AskForPlace(controller: controller),
-              WeatherState.loading => const Row(
-                children: [
-                  SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  SizedBox(width: 12),
-                  Text('Getting the weather...'),
-                ],
+      // Read-only information with controls inside it: an information
+      // surface, so it follows the light or dark setting like everything else.
+      builder: (context, _) => InfoSurface(
+        child: switch (controller.state) {
+          WeatherState.noPlace => _AskForPlace(controller: controller),
+          WeatherState.loading => const Row(
+            children: [
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
               ),
-              WeatherState.failed => _Failed(controller: controller),
-              WeatherState.ready => _Ready(controller: controller),
-            },
+              SizedBox(width: 12),
+              Text('Getting the weather...'),
+            ],
           ),
-        ),
+          WeatherState.failed => _Failed(controller: controller),
+          WeatherState.ready => _Ready(controller: controller),
+        },
       ),
     );
   }

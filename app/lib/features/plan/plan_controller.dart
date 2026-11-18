@@ -79,17 +79,39 @@ class PlanController extends ChangeNotifier {
   Future<PlanAddResult> add({
     required Bird bird,
     required List<PlanCandidate> actions,
-  }) => _track(() async {
+  }) => _addFor(bird.id, bird.commonName, actions);
+
+  /// Adds the general actions for a bird we have no content for (any species
+  /// the identification service names). The plan shows it as "another bird".
+  Future<PlanAddResult> addForOtherBird({
+    required String name,
+    required List<PlanCandidate> actions,
+  }) => _addFor(otherBirdId(name), name, actions);
+
+  /// A stable id for a bird we have no content for, from its name.
+  static String otherBirdId(String name) {
+    final slug = name
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-+|-+$'), '');
+    return 'other-${slug.isEmpty ? 'bird' : slug}';
+  }
+
+  Future<PlanAddResult> _addFor(
+    String birdId,
+    String label,
+    List<PlanCandidate> actions,
+  ) => _track(() async {
     if (_store == null) {
       await init();
       if (_store == null) throw StateError('The plan could not be opened.');
     }
     final result = await _store!.add(
-      birdId: bird.id,
+      birdId: birdId,
       actions: actions,
       now: now(),
     );
-    banner = _bannerText(bird, result);
+    banner = _bannerText(label, result);
     actionError = null;
     try {
       await _reload();
@@ -101,18 +123,17 @@ class PlanController extends ChangeNotifier {
     return result;
   });
 
-  static String _bannerText(Bird bird, PlanAddResult r) {
+  static String _bannerText(String bird, PlanAddResult r) {
     final n = r.added.length;
     final m = r.alreadyInPlan.length;
     if (n == 0) {
       return m == 1
           ? 'That action was already in your plan. '
-                '${bird.commonName} was added to it.'
+                '$bird was added to it.'
           : 'Those actions were already in your plan. '
-                '${bird.commonName} was added to them.';
+                '$bird was added to them.';
     }
-    final head =
-        '$n ${n == 1 ? 'action' : 'actions'} added for ${bird.commonName}';
+    final head = '$n ${n == 1 ? 'action' : 'actions'} added for $bird';
     return m == 0 ? head : '$head · $m already in your plan';
   }
 

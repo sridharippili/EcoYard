@@ -1,4 +1,5 @@
 import 'package:bird_audio/bird_audio.dart';
+import 'package:flutter/painting.dart' show ImageProvider, NetworkImage;
 import 'package:ecoyard_core/ecoyard_core.dart' show OfflineModelConfig;
 
 import 'content.dart';
@@ -17,6 +18,8 @@ class AppEnvironment {
     required this.exporter,
     required this.reminders,
     required this.offline,
+    required this.photoLookup,
+    this.photoImage = NetworkImage.new,
     this.now = DateTime.now,
   });
 
@@ -28,6 +31,7 @@ class AppEnvironment {
       chain: standardOnlineChain(local: offline.provider),
       newRecorder: () => RecordPackageRecorder(useWav: offline.isReady),
       offline: offline,
+      photoLookup: WikimediaPhotos(),
       loadContent: loadBundledContent,
       openStorage: SqliteAppStorage.open,
       audioCache: AudioCache(),
@@ -68,6 +72,14 @@ class AppEnvironment {
 
   /// The offline model: on the phone or not, and how to get or remove it.
   final OfflineModel offline;
+
+  /// Finds a photo for a bird we have none bundled for. Only the species
+  /// name is sent; see the privacy policy.
+  final SpeciesPhotoLookup photoLookup;
+
+  /// Turns a photo address into an image (the network in the app, memory in
+  /// tests).
+  final ImageProvider Function(String url) photoImage;
 
   /// The clock. Used for the month (advice) and for plan timestamps.
   final DateTime Function() now;

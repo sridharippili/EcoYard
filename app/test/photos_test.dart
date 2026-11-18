@@ -162,7 +162,9 @@ void heroLayoutTests() {
     });
 
     test('an unknown size falls back to a sensible shape', () {
-      expect(heroAspect(null), inInclusiveRange(0.8, 1.6));
+      // No photo at all is a shallow banner (the placeholder); a photo of
+      // unknown size gets a sensible photo shape.
+      expect(heroAspect(null), 2.2);
       const noSize = PhotoCredit(
         id: 'x',
         kind: 'bird',

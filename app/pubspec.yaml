@@ -9,6 +9,7 @@ environment:
 dependencies:
   bird_audio:
     path: ../packages/bird_audio
+  cupertino_native: ^0.1.1
   ecoyard_core:
     path: ../packages/ecoyard_core
   flutter:

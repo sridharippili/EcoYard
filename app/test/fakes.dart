@@ -9,7 +9,8 @@ import 'package:ecoyard/app/content.dart';
 import 'package:ecoyard_core/ecoyard_core.dart';
 import 'package:ecoyard/main.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_ui/material_ui.dart' show Size, Text;
+import 'package:material_ui/material_ui.dart'
+    show ImageProvider, MemoryImage, Size, Text;
 
 class FakeRecorder implements ClipRecorder {
   FakeRecorder({this.permission = true, this.stopThrows = false});
@@ -66,12 +67,16 @@ class FakeProvider implements IdentificationProvider {
   Object outcome;
   int identifyCalls = 0;
 
+  /// When set, identify waits for it before answering (a slow service).
+  Completer<void>? gate;
+
   @override
   Future<bool> isAvailable() async => available;
 
   @override
   Future<IdentificationResult> identify(AudioClip clip) async {
     identifyCalls++;
+    if (gate != null) await gate!.future;
     final o = outcome;
     if (o is IdentificationResult) return o;
     throw o;
@@ -348,6 +353,96 @@ class _NoLocal implements IdentificationProvider {
       throw const ProviderException(FailureKind.unavailable, 'none');
 }
 
+/// A 1x1 transparent PNG, so tests can show an image without the network.
+final Uint8List _pixel = Uint8List.fromList(const [
+  0x89,
+  0x50,
+  0x4E,
+  0x47,
+  0x0D,
+  0x0A,
+  0x1A,
+  0x0A,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x48,
+  0x44,
+  0x52,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x08,
+  0x06,
+  0x00,
+  0x00,
+  0x00,
+  0x1F,
+  0x15,
+  0xC4,
+  0x89,
+  0x00,
+  0x00,
+  0x00,
+  0x0B,
+  0x49,
+  0x44,
+  0x41,
+  0x54,
+  0x78,
+  0x9C,
+  0x63,
+  0x60,
+  0x00,
+  0x02,
+  0x00,
+  0x00,
+  0x05,
+  0x00,
+  0x01,
+  0x7A,
+  0x5E,
+  0xAB,
+  0x3F,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x49,
+  0x45,
+  0x4E,
+  0x44,
+  0xAE,
+  0x42,
+  0x60,
+  0x82,
+]);
+
+/// Answers photo lookups from a map (name -> photo), and records the asks.
+class FakePhotoLookup implements SpeciesPhotoLookup {
+  FakePhotoLookup([this.photos = const {}]);
+  final Map<String, RemotePhoto> photos;
+  final asked = <String>[];
+  Completer<RemotePhoto?>? hold;
+
+  @override
+  Future<RemotePhoto?> find({
+    required String name,
+    String? scientificName,
+  }) async {
+    asked.add(name);
+    if (hold != null) return hold!.future;
+    return photos[name];
+  }
+}
+
 AppEnvironment fakeEnv({
   List<IdentificationProvider>? providers,
   FakeRecorder? recorder,
@@ -362,6 +457,8 @@ AppEnvironment fakeEnv({
   DataExporter? exporter,
   ReminderScheduler? reminders,
   OfflineModel? offline,
+  SpeciesPhotoLookup? photoLookup,
+  ImageProvider Function(String url)? photoImage,
   bool onboarded = true,
   DateTime Function()? now,
 }) => AppEnvironment(
@@ -386,6 +483,8 @@ AppEnvironment fakeEnv({
   exporter: exporter ?? FakeExporter(),
   reminders: reminders ?? FakeReminders(),
   offline: offline ?? FakeOffline(),
+  photoLookup: photoLookup ?? FakePhotoLookup(),
+  photoImage: photoImage ?? (_) => MemoryImage(_pixel),
   now: now ?? fixedNow,
 );
 

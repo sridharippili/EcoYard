@@ -167,11 +167,9 @@ void main() {
     await pumpApp(tester, fakeEnv(providers: [answering('Northern Cardinal')]));
     await recordAndStop(tester);
     await tester.tap(
-      find.byWidgetPredicate(
-        (w) =>
-            w is FilledButton &&
-            w.child is Text &&
-            ((w.child! as Text).data ?? '').startsWith('Add '),
+      find.ancestor(
+        of: find.textContaining('Add '),
+        matching: find.byType(FilledButton),
       ),
     );
     await tester.pumpAndSettle();
