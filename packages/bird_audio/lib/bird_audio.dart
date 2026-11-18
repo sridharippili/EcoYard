@@ -23,5 +23,6 @@ export 'src/recorder.dart';
 export 'src/system/data_export.dart';
 export 'src/system/device_location.dart';
 export 'src/system/reminders.dart';
+export 'src/system/species_photos.dart';
 export 'src/system/weather_service.dart';
 export 'src/standard_chain.dart';

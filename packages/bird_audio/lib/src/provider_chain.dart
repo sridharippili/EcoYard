@@ -17,6 +17,31 @@ class ChainOutcome {
       failuresBefore.any((f) => f.sentAudioOffDevice);
 }
 
+/// One step of a progressive identification.
+class ChainProgress {
+  const ChainProgress(this.outcome, {required this.isFinal});
+
+  final ChainOutcome outcome;
+
+  /// False for a quick answer from a lower-priority service while a
+  /// higher-priority one is still working: it may be replaced. True when no
+  /// better answer can still arrive.
+  final bool isFinal;
+}
+
+/// What one provider did, without throwing.
+class _Attempt {
+  _Attempt.answered(this.result) : failure = null;
+  _Attempt.failed(this.failure) : result = null;
+
+  final IdentificationResult? result;
+  final ProviderFailure? failure;
+
+  /// An answer that ends the search: a result, or "heard no bird" from a
+  /// service whose "no bird" is final. Anything else lets the next one try.
+  bool decisive = false;
+}
+
 /// Result of probing every provider.
 class ChainHealth {
   const ChainHealth(this.available);
@@ -135,6 +160,159 @@ class ProviderChain {
   /// next recording look again. Call when something changed that a cached
   /// "down" would hide, such as the offline model finishing its download.
   void forgetHealth() => _health.clear();
+
+  /// Like [identify], but quick. Providers that keep the recording on the
+  /// phone go first, one at a time, and if one answers nothing is uploaded.
+  /// Otherwise every online provider gets the recording AT THE SAME TIME, and
+  /// the first answer is emitted at once (not final) while a better-ranked
+  /// provider is still working. When the best-ranked provider that can answer
+  /// has answered, that is emitted as final.
+  ///
+  /// The recording therefore goes to every online provider that is not known
+  /// to be down, and the screens must say so.
+  ///
+  /// Throws [NoProviderAnsweredException] when nobody gave a usable answer, or
+  /// when the best-ranked provider that answered heard no bird.
+  Stream<ChainProgress> identifyProgressive(AudioClip clip) async* {
+    final failures = <ProviderFailure>[];
+
+    // 1. Providers that never upload: in order, one at a time.
+    var i = 0;
+    for (; i < providers.length && !providers[i].sendsAudioOffDevice; i++) {
+      final p = providers[i];
+      final a = await _attempt(p, clip);
+      if (a.result != null) {
+        yield ChainProgress(
+          ChainOutcome(result: a.result!, failuresBefore: [...failures]),
+          isFinal: true,
+        );
+        return;
+      }
+      failures.add(a.failure!);
+      if (a.decisive) throw NoProviderAnsweredException(failures);
+    }
+
+    // 2. Online providers, all at once.
+    final online = providers.sublist(i);
+    final results = List<_Attempt?>.filled(online.length, null);
+    final pending = <int, Future<MapEntry<int, _Attempt>>>{};
+    for (var k = 0; k < online.length; k++) {
+      final p = online[k];
+      if (_freshHealth(p.id) == false) {
+        results[k] = _Attempt.failed(ProviderFailure(
+          providerId: p.id,
+          kind: FailureKind.unavailable,
+          message: 'Health check failed recently; skipped.',
+          skipped: true,
+          sentAudioOffDevice: false,
+        ));
+      } else {
+        pending[k] = _attempt(p, clip).then((a) => MapEntry(k, a));
+      }
+    }
+
+    int? emitted; // index of the provisional answer already shown
+    while (true) {
+      // The best-ranked decisive answer, if every provider ranked above it
+      // has already failed; else the first decisive answer from below.
+      int? finalAt;
+      int? provisionalAt;
+      var blocked = false;
+      for (var k = 0; k < online.length; k++) {
+        final r = results[k];
+        if (r == null) {
+          blocked = true;
+          continue;
+        }
+        if (r.decisive) {
+          if (blocked) {
+            provisionalAt ??= r.result != null ? k : null;
+          } else {
+            finalAt = k;
+            break;
+          }
+        }
+      }
+
+      List<ProviderFailure> before(int upTo) => [
+            ...failures,
+            for (var k = 0; k < upTo; k++)
+              if (results[k]?.failure != null && !results[k]!.decisive)
+                results[k]!.failure!,
+          ];
+
+      if (finalAt != null) {
+        final r = results[finalAt]!;
+        if (r.result == null) {
+          throw NoProviderAnsweredException([...before(finalAt), r.failure!]);
+        }
+        yield ChainProgress(
+          ChainOutcome(result: r.result!, failuresBefore: before(finalAt)),
+          isFinal: true,
+        );
+        return;
+      }
+      if (!blocked) {
+        throw NoProviderAnsweredException([
+          ...failures,
+          for (final r in results)
+            if (r?.failure != null) r!.failure!,
+        ]);
+      }
+      if (provisionalAt != null && emitted != provisionalAt) {
+        emitted = provisionalAt;
+        yield ChainProgress(
+          ChainOutcome(
+            result: results[provisionalAt]!.result!,
+            failuresBefore: before(provisionalAt),
+          ),
+          isFinal: false,
+        );
+      }
+      final done = await Future.any(pending.values);
+      results[done.key] = done.value;
+      pending.remove(done.key);
+    }
+  }
+
+  /// Runs one provider and never throws. Updates what the chain remembers
+  /// about the provider being up or down.
+  Future<_Attempt> _attempt(IdentificationProvider p, AudioClip clip) async {
+    try {
+      final result = await p.identify(clip).timeout(
+            perProviderTimeout,
+            onTimeout: () => throw ProviderException(
+              FailureKind.timeout,
+              '${p.label} did not answer within '
+              '${perProviderTimeout.inSeconds}s.',
+            ),
+          );
+      _health[p.id] = _CachedHealth(true, _now());
+      return _Attempt.answered(result)..decisive = true;
+    } on ProviderException catch (e) {
+      if (e.kind == FailureKind.unavailable || e.kind == FailureKind.timeout) {
+        _health[p.id] = _CachedHealth(false, _now());
+      }
+      final a = _Attempt.failed(ProviderFailure(
+        providerId: p.id,
+        kind: e.kind,
+        message: e.message,
+        sentAudioOffDevice: p.sendsAudioOffDevice,
+      ));
+      if (e.kind == FailureKind.noDetection && p.noDetectionIsFinal) {
+        _health[p.id] = _CachedHealth(true, _now());
+        a.decisive = true;
+      }
+      return a;
+    } catch (e) {
+      return _Attempt.failed(ProviderFailure(
+        providerId: p.id,
+        kind: FailureKind.badResponse,
+        message: 'Unexpected error: $e',
+        sentAudioOffDevice: p.sendsAudioOffDevice,
+      ));
+    }
+  }
 
   bool? _freshHealth(String id) {
     final c = _health[id];
